@@ -24,7 +24,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL optimization, data migration, CTEs, query execution analysis, performance tuning, dimensional modeling, Databricks, Tableau, technical documentation
 
-**📄 [View detailed technical case study →](/career-hub-optimization.nmd)**
+**📄 [View detailed technical case study →](/career-hub-optimization.md)**
 
 ---
 
