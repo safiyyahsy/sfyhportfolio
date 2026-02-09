@@ -6,17 +6,31 @@ subtitle: Data Analytics & Machine Learning Work
 
 ## Professional Work at SEEK
 
-### 1. Dashboard Performance Optimization
-**Challenge:** Analytics dashboard serving 100+ users had 45+ second load times due to 21 separate SQL queries hitting production database.
+### 1. Career Hub Dashboard Optimization: Migration & Performance Improvement
 
-**Solution:** Analyzed query execution plans, identified redundant data fetches, and consolidated logic using CTEs and supporting tables.
+**Challenge:** Career Hub Experiment tracking dashboard took several days to load and consumed excessive Databricks resources, impacting other users. Root cause: inefficient data structure with 21 separate SQL queries hitting generic shared tables in production.
+
+**Phase 1: Data Migration & Restructuring**
+- Analyzed current query structure and identified inefficiencies in data sources
+- Designed purpose-built analytical tables optimized for dashboard requirements
+- Mapped data transformations from generic tables to new analytical structure
+- Migrated and validated queries on Databricks
+- Documented mapping logic and migration process
+
+**Phase 2: Query Consolidation & Optimization**
+- Analyzed query execution plans to identify bottlenecks and redundant data fetches
+- Consolidated 21 separate queries into 6 optimized queries (1 main + 5 supporting)
+- Implemented CTEs to eliminate repeated logic and reduce complexity
+- Leveraged new analytical tables to improve query performance
 
 **Impact:**
-- Reduced load time by **70%+** (45s → 12s)
+- Reduced load time by **70%+** (days → 8 minutes)
 - Decreased database CPU usage by ~60%
-- Improved maintainability (1 main query vs 21 separate queries)
+- Eliminated resource contention affecting other Databricks users
+- Improved maintainability (consolidated queries vs 21 separate queries)
+- Created reusable analytical tables for future dashboard development
 
-**Skills:** SQL optimization, CTEs, performance tuning, Databricks, Tableau
+**Skills:** SQL optimization, data migration, CTEs, query execution analysis, performance tuning, dimensional modeling, Databricks, Tableau, technical documentation
 
 ---
 
@@ -49,7 +63,6 @@ subtitle: Data Analytics & Machine Learning Work
 **Skills:** SQL (CTEs, conditional logic), metric definition, documentation
 
 ---
-
 ### 4. Technical Documentation & Data Governance
 **Deliverables:**
 - Data flow diagrams showing relationships between data sources
