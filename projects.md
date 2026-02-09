@@ -10,27 +10,21 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Challenge:** Career Hub Experiment tracking dashboard took several days to load and consumed excessive Databricks resources, impacting other users. Root cause: inefficient data structure with 21 separate SQL queries hitting generic shared tables in production.
 
-**Phase 1: Data Migration & Restructuring**
-- Analyzed current query structure and identified inefficiencies in data sources
-- Designed purpose-built analytical tables optimized for dashboard requirements
-- Mapped data transformations from generic tables to new analytical structure
-- Migrated and validated queries on Databricks
-- Documented mapping logic and migration process
+**Two-Phase Solution:**
 
-**Phase 2: Query Consolidation & Optimization**
-- Analyzed query execution plans to identify bottlenecks and redundant data fetches
-- Consolidated 21 separate queries into 6 optimized queries (1 main + 5 supporting)
-- Implemented CTEs to eliminate repeated logic and reduce complexity
-- Leveraged new analytical tables to improve query performance
+**Phase 1 - Data Migration:** Migrated queries from oversized shared table (`candidate_staging`) to purpose-built analytical table, requiring schema mapping and data validation.
+
+**Phase 2 - Query Consolidation:** Consolidated 18 migrated queries into 6 optimized queries using CTEs and conditional aggregation.
 
 **Impact:**
 - Reduced load time by **70%+** (days → 8 minutes)
 - Decreased database CPU usage by ~60%
 - Eliminated resource contention affecting other Databricks users
-- Improved maintainability (consolidated queries vs 21 separate queries)
-- Created reusable analytical tables for future dashboard development
+- Improved maintainability and created reusable analytical foundation
 
 **Skills:** SQL optimization, data migration, CTEs, query execution analysis, performance tuning, dimensional modeling, Databricks, Tableau, technical documentation
+
+**📄 [View detailed technical case study →](/career-hub-optimization)**
 
 ---
 
