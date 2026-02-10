@@ -33,10 +33,19 @@ I turn data into actionable insights. My work involves:
 
 Data Analyst or Business Intelligence Analyst roles where I can leverage my SQL and visualization skills to drive business decisions. Available from **April 2026**.
 
-📧 [safiyyahsy28@example.com](mailto:safiyyahsy28@example.com)  
-💼 [LinkedIn](www.linkedin.com/in/nsin28)  
-👨‍💻 [GitHub](https://github.com/safiyyahsy)
+## 📄 Resume
 
+**[Download Resume (PDF)](NurSafiyyahInsyirahNordin_Resume.pdf)**
+
+*Last updated: February 2026 | Available for Data Analyst roles starting April 2026*
+
+---
+
+**Let's connect:**
+
+📧 safiyyahsy28@gmail.com  
+💼 [LinkedIn](https://linkedin.com/in/your-profile)  
+🐙 [GitHub](https://github.com/safiyyahsy)
 ---
 
 *CGPA: 3.72/4.00 | Expected Graduation: February 2026*
