@@ -21,6 +21,7 @@ This portfolio demonstrates my skills and experience in data analytics, SQL opti
 - SQL query optimization and migration
 - Tableau dashboard development
 - Data documentation and governance
+- [View the Case study Repository](https://github.com/safiyyahsy/sfyhportfolio/career-hub-optimization.md)
 
 ### **Academic Projects**
 - **HomeCheck ML Project** - CNN-based home defect classification (97.77% accuracy through 33 systematic experiments)
@@ -112,7 +113,7 @@ Final-year Intelligent Systems Engineering student (CGPA 3.72/4.00) with hands-o
 ## 📬 Contact
 
 - **Email:** safiyyahsy28@gmail.com
-- **LinkedIn:** [Your LinkedIn Profile](https://linkedin.com/in/your-profile)
+- **LinkedIn:** [Nur Safiyyah Insyirah](https://linkedin.com/in/nsin28)
 - **GitHub:** [@safiyyahsy](https://github.com/safiyyahsy)
 - **Portfolio:** [https://safiyyahsy.github.io/sfyhportfolio/](https://safiyyahsy.github.io/sfyhportfolio/)
 
