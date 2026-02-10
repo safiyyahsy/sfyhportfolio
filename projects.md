@@ -12,12 +12,14 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Two-Phase Solution:**
 
-**Phase 1 - Data Migration:** Migrated queries from oversized shared table (`candidate_staging`) to purpose-built analytical table, requiring schema mapping and data validation.
+**Phase 1 - Data Migration:** Migrated queries from oversized shared table (`shared_events`) to purpose-built analytical table, requiring schema mapping and data validation.
 
 **Phase 2 - Query Consolidation:** Consolidated 18 migrated queries into 6 optimized queries using CTEs and conditional aggregation.
 
+**Phase 3 - Dashboard Integration & Validation**
+
 **Impact:**
-- Reduced load time by **70%+** (days → 8 minutes)
+- Reduced load time by **70%+** (days → 3-8 minutes)
 - Decreased database CPU usage by ~60%
 - Eliminated resource contention affecting other Databricks users
 - Improved maintainability and created reusable analytical foundation
