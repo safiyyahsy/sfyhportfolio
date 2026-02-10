@@ -263,7 +263,7 @@ WHERE 1=1
 GROUP BY ALL
 ORDER BY 1,2,3
 ```
-**AFTER (using analytics_event table):
+**AFTER (using analytics_event table):**
 ```sql
 SELECT
   LOWER(brand_country) AS site  -- Column mapping + case conversion
@@ -320,3 +320,631 @@ ORDER BY 1,2,3
 5. Simplified WHERE clause: New table structure eliminated need for some filters
 
 Result: Successfully migrated with 100% data accuracy (validated via spreadsheet comparison across all site/platform/variant combinations)
+
+---
+
+## Phase 2: Query Consolidation
+
+### Goal
+Reduce 18 separate queries (after migration) to minimize redundant table scans and improve performance dramatically.
+
+### The Problem After Phase 1
+
+Even after migration to the purpose-built table, performance was still poor:
+
+**Why?** Each of the 18 queries was:
+- Scanning the entire `analytics_events` table independently
+- Applying the same date/platform/country/experiment filters
+- Running separately = **18 separate table scans**
+- Combined load time: Still several days
+
+**Root cause:** Queries weren't sharing any work - every query re-read the same filtered data.
+
+### Analysis: Pattern Recognition
+
+After migration, I analyzed the 18 queries and found significant overlap:
+
+**Common patterns across queries:**
+
+1. **Identical filtering logic:**
+   - All queries filtered on same date range
+   - All queries filtered on same countries/markets
+   - All queries filtered on same platforms (iOS/Android)
+   - All queries filtered on experiment participation
+
+2. **Similar metric calculations:**
+   - Many calculated user counts with different event filters
+   - Multiple queries tracked engagement (clicks, views, shares)
+   - Several queries calculated rates/percentages (impressions per user, etc.)
+   - Different queries just filtered on different `event_name` values
+
+3. **Segmentation patterns:**
+   - Multiple queries used CASE WHEN to segment by content type (video vs article)
+   - Similar logic for calculating metrics at different granularities
+
+**Consolidation Opportunity Identified:**
+
+Queries could be reorganized into:
+- **1 base CTE** with shared filtering (scans table once)
+- **Multiple metric CTEs** calculating different metrics from the base
+- **1 final SELECT** joining all metrics together
+
+**Target:** Consolidate 16 of the 18 migrated queries into 1 main query, leaving 5 specialized queries separate = **6 total queries**
+
+### Consolidation Strategy
+
+**BEFORE Phase 2:** Sequential independent queries
+
+Query 1: SELECT ... FROM analytics_events WHERE [common filters] AND event = 'A'
+Query 2: SELECT ... FROM analytics_events WHERE [common filters] AND event = 'B'
+Query 3: SELECT ... FROM analytics_events WHERE [common filters] AND event = 'C'
+...
+Query 16: SELECT ... FROM analytics_events WHERE [common filters] AND event = 'P'
+
+### Example: Before Consolidation
+
+**Original Query #7: Content Exposure Tracking (1 of 18 separate queries)**
+
+```sql
+-- ONE of 18 separate queries - this one tracked content impressions
+SELECT 
+    event_date_utc,
+    platform,
+    experiments['experiment-feature-test'].variant AS variant,
+    COUNT(DISTINCT content_impression_id) AS unique_impressions,
+    COUNT(DISTINCT uid) AS visitors,
+    COUNT(DISTINCT CASE WHEN content_type LIKE '%video%' OR content_type LIKE '%episodic%'
+        THEN uid END) AS skill_visitors,
+    COUNT(DISTINCT CASE WHEN content_type LIKE '%thread%' 
+        THEN uid END) AS community_visitors,
+    COUNT(DISTINCT CASE WHEN content_type LIKE '%video%' OR content_type LIKE '%episodic%'
+        THEN content_impression_id END) AS unique_skill_impressions,
+    COUNT(DISTINCT CASE WHEN content_type LIKE '%thread%' 
+        THEN content_impression_id END) AS unique_community_impressions
+
+FROM analytics_platform.analytics_db.analytics_events
+
+WHERE 1=1
+    -- These filters repeated in ALL 18 queries ↓
+    AND date BETWEEN :date_range.min AND :date_range.max
+    AND ARRAY_CONTAINS(:param_platform, platform)
+    AND ARRAY_CONTAINS(:param_country, country)
+    AND experiments['experiment-feature-test'].variant IS NOT NULL
+    AND LOWER(country) IN ('market_a', 'market_b', 'market_c', 'market_d', 'market_e', 'market_f', 'market_g', 'market_h')
+    -- This filter unique to this query ↓
+    AND event_name = 'content_cards_viewed'
+    -- Optimizations
+    AND date IS NOT NULL
+    AND event_name IS NOT NULL
+
+GROUP BY event_date_utc, platform, variant
+ORDER BY event_date_utc, platform, variant;
+```
+### Example: After Consolidation
+
+**Consolidated Main Query: Replaces 16 of 18 queries with single query using flags**
+
+```sql
+-- CONSOLIDATED QUERY: Replaces 16 separate queries with flag-based approach
+-- Single table scan with flags for all metrics
+
+WITH main_query AS (
+    SELECT 
+        event_date_utc,
+        platform,
+        mobile_app_version,
+        country,
+        experiments['experiment-feature-test'].variant AS variant,
+        event_name,
+        uid,
+        vid,
+        content_impression_id AS content_id,
+        content_type,
+        
+        -- Enhanced event type classification
+        CASE
+            WHEN event_name = 'video_viewed' AND LOWER(action_type) LIKE '%play%' 
+                THEN 'video_viewed_play'
+            WHEN event_name = 'feature_video_viewed' AND LOWER(action_type) LIKE '%play%' 
+                THEN 'feature_video_viewed_play'
+            ELSE event_name 
+        END AS event_type,
+        
+        action_type,
+        link_position,
+        current_page,
+        link_action,
+        LOWER(brand_country) AS site,
+        module_id,
+        view_action_origin,
+        
+        -- FLAG SYSTEM: Binary indicators for dashboard calculations
+        -- Replaces separate COUNT DISTINCT queries with flag-based aggregation
+        
+        -- Core Feature Exposure
+        CASE WHEN event_name = 'feature_displayed' THEN 1 END AS flag_feature_exposed,
+        
+        -- Activation Events (replaces 3 separate queries)
+        CASE WHEN (event_name IN (
+                'thread_displayed', 
+                'feature_thread_displayed', 
+                'follow_button_pressed', 
+                'create_thread_pressed',
+                'like_button_pressed', 
+                'show_reply_pressed', 
+                'comment_thread_succeeded', 
+                'comment_succeeded', 
+                'create_thread_succeeded')
+            OR (event_name = 'poll_selection_pressed' 
+                AND link_position = 'thread poll' 
+                AND current_page = 'feature home')
+            OR event_type IN ('video_viewed_play', 'feature_video_viewed_play')
+        ) THEN 1 END AS flag_activation,
+        
+        -- Skills Activation (replaces Query #11)
+        CASE WHEN event_name IN ('video_viewed', 'feature_video_viewed') 
+            THEN 1 END AS flag_activation_skills,
+        
+        -- Community Activation (replaces Query #13)
+        CASE WHEN event_name IN (
+            'thread_displayed',
+            'feature_thread_displayed',
+            'create_thread_succeeded',
+            'create_thread_pressed',
+            'comment_thread_succeeded',
+            'follow_button_pressed',
+            'share_pressed',
+            'like_button_pressed',
+            'comment_succeeded',
+            'show_reply_pressed'
+        ) THEN 1 END AS flag_activation_community,
+        
+        -- Community Engagement Funnel (replaces 3 separate queries)
+        CASE WHEN event_name = 'create_thread_displayed' 
+            THEN 1 END AS flag_community_thread_displayed,
+        CASE WHEN event_name = 'create_thread_pressed' 
+            THEN 1 END AS flag_community_thread_initiation,
+        CASE WHEN event_name = 'create_thread_succeeded' 
+            THEN 1 END AS flag_community_thread_completed,
+        CASE WHEN event_name = 'like_button_pressed' 
+            THEN 1 END AS flag_community_liked,
+        CASE WHEN event_name = 'comment_succeeded' 
+            THEN 1 END AS flag_community_commented,
+        CASE WHEN event_name = 'share_pressed' 
+            THEN 1 END AS flag_community_shared,
+        
+        -- Content Impression Tracking (replaces Query #7)
+        CASE WHEN event_name = 'content_cards_viewed' 
+            THEN 1 END AS flag_impression_content,
+        CASE WHEN event_name = 'content_cards_viewed' 
+            AND (content_type LIKE '%video%' OR content_type LIKE '%episodic%') 
+            THEN 1 END AS flag_impression_skills,
+        CASE WHEN event_name = 'content_cards_viewed' 
+            AND content_type LIKE '%thread%' 
+            THEN 1 END AS flag_impression_community,
+        
+        -- Subtitle Feature Tracking (replaces 2 separate queries)
+        CASE WHEN event_name = 'video_subtitles_pressed' 
+            AND link_action = 'view subtitles' 
+            THEN 1 END AS flag_subtitle_toggle,
+        CASE WHEN event_name = 'video_subtitles_pressed' 
+            AND link_action IN ('english', 'thai', 'tagalog', 'chinese', 'indonesian', 'malay', 'off') 
+            THEN 1 END AS flag_subtitle_language,
+        
+        -- Video Engagement (replaces Query #12)
+        CASE WHEN (event_name IN ('feature_video_viewed', 'feature_module_displayed', 'video_subtitles_pressed')
+            AND LOWER(action_type) IN (
+                'pause video', 'video complete', 'feature back button', 
+                'back to previous page', 'continue play video',
+                'play video', 'tap to play on module screen', 'tap to play')) 
+            THEN 1 END AS flag_watched_video,
+        
+        -- Subtitle Rate Calculation (denominator for subtitle metrics)
+        CASE WHEN (event_name IN ('feature_video_viewed', 'feature_module_displayed')
+            AND LOWER(action_type) IN (
+                'pause video', 'video complete', 'feature back button', 
+                'back to previous page', 'continue play video',
+                'play video', 'tap to play on module screen', 'tap to play')) 
+            AND event_name != 'video_subtitles_pressed'
+            THEN 1 END AS flag_subtitle_rate,
+        
+        -- Action Menu Interactions (replaces Query #15)
+        CASE WHEN event_name = 'more_actions_pressed' 
+            THEN 1 END AS flag_snack_bar,
+        CASE WHEN event_name = 'bookmark_pressed' 
+            THEN 1 END AS flag_bookmark,
+        CASE WHEN (event_name = 'bookmark_pressed' 
+            AND link_position = 'module' 
+            AND current_page != 'feature module') 
+            THEN 1 END AS flag_rail_bookmark,
+        CASE WHEN (event_name = 'bookmark_pressed' 
+            AND link_position = 'module' 
+            AND current_page = 'feature module' 
+            AND view_action_origin = 'module more videos like this') 
+            THEN 1 END AS flag_module_action_bookmark,
+        
+        -- Share Tracking
+        CASE WHEN (event_name = 'share_pressed' 
+            AND link_position = 'module' 
+            AND current_page != 'feature module') 
+            THEN 1 END AS flag_rail_share,
+        CASE WHEN (event_name = 'share_pressed' 
+            AND link_position = 'module' 
+            AND current_page = 'feature module'
+            AND view_action_origin = 'module more videos like this') 
+            THEN 1 END AS flag_module_action_share,
+        
+        -- Bookmark Engagement Flow
+        CASE WHEN event_name = 'feature_module_displayed' 
+            AND view_action_origin = 'bookmark' 
+            THEN 1 END AS flag_bookmark_video_play,
+        
+        -- Notification System Tracking (replaces 2 separate queries)
+        CASE WHEN event_name = 'tooltip_pressed' 
+            AND link_position = 'tooltip' 
+            THEN 1 END AS flag_tooltip_acknowledged,
+        CASE WHEN event_name = 'tooltip_pressed' 
+            AND link_position = 'others' 
+            THEN 1 END AS flag_tooltip_dismissed,
+        CASE WHEN event_name = 'recent_activity_displayed' 
+            THEN 1 END AS flag_notification_page,
+        CASE WHEN event_name = 'recent_activity_pressed' 
+            THEN 1 END AS flag_notification_read,
+        CASE WHEN event_name = 'notification_badge_pressed' 
+            THEN 1 END AS flag_unread_notification_fired
+        
+    FROM analytics_platform.analytics_db.analytics_events
+    
+    WHERE 1=1
+        -- Date filter (hardcoded initially, parameterized in Phase 3)
+        AND date BETWEEN DATE('2024-09-01') AND LAST_DAY(DATE('2024-09-01'))
+        
+        -- Platform filter
+        AND platform IN ('ios app', 'android app')
+        
+        -- Market Filter
+        AND LOWER(country) IN ('market_a', 'market_b', 'market_c', 'market_d', 
+                               'market_e', 'market_f', 'market_g', 'market_h')
+        
+        -- Experiment participation
+        AND experiments['experiment-feature-test'].variant IS NOT NULL
+        
+        -- Event Filter: Consolidated list covering all 16 original queries
+        AND (
+            -- Content Exposure
+            (event_name = 'content_cards_viewed')
+            OR 
+            -- Core Events
+            (event_name IN (
+                'feature_displayed', 
+                'thread_displayed', 
+                'feature_thread_displayed', 
+                'create_thread_pressed', 
+                'create_thread_succeeded',
+                'comment_thread_succeeded', 
+                'follow_button_pressed',
+                'share_pressed', 
+                'like_button_pressed', 
+                'show_reply_pressed', 
+                'comment_succeeded', 
+                'video_viewed',
+                'feature_video_viewed',
+                'create_thread_displayed',
+                'video_subtitles_pressed',
+                'tooltip_pressed',
+                'recent_activity_displayed',
+                'recent_activity_pressed',
+                'notification_badge_pressed'
+            ))
+            OR 
+            -- Conditional Events (complex filters)
+            (event_name = 'poll_selection_pressed' 
+                AND link_position = 'thread poll' 
+                AND current_page = 'feature home')
+            OR
+            (event_name = 'video_subtitles_pressed' 
+                AND link_action = 'view subtitles')
+            OR 
+            (event_name = 'video_subtitles_pressed' 
+                AND LOWER(link_action) IN ('english', 'thai', 'tagalog', 'chinese', 
+                                           'indonesian', 'malay', 'off'))
+            OR
+            (event_name IN ('feature_video_viewed', 'feature_module_displayed')
+                AND LOWER(action_type) IN (
+                    'pause video', 'video complete',
+                    'feature back button', 'back to previous page', 
+                    'continue play video', 'play video',
+                    'tap to play on module screen', 'tap to play'))
+        )
+        
+        -- Data Quality Optimizations
+        AND date IS NOT NULL
+        AND event_name IS NOT NULL
+)
+
+-- Final SELECT with additional computed flag
+SELECT *, 
+    CASE WHEN (event_name = 'video_subtitles_pressed' 
+        AND LOWER(link_action) IN ('english', 'thai', 'tagalog', 'chinese', 
+                                   'indonesian', 'malay', 'off')) 
+        THEN 1 ELSE 0 
+    END AS flag_video_subtitle
+FROM main_query;
+```
+
+**How this consolidation works:
+
+1. Single table run
+   - Before: 16 queries x 1 run each = 16 runs
+   - After: 1 base CTE = 1 run
+     
+2. Flag-based architecture
+   - Instead of separate count distinct queries for different event filters, binary flags were used
+   - More flexible for dashboard filtering and calculations
+  
+3. Shared filtering logic
+   - Date, platform, country, experiment filters applied once
+   - Complex event filtering consolidated in single OR condition
+   - filter hardcoded at this stage
+  
+4. Event lists consolidation
+   - Combined event lists from all 16 queries
+   - Organized by category (content, activation, community, notifications)
+   - Single WHERE clause cover all metrics
+
+5. Conditional flag logic
+   - Handles complex business rules
+   - Separate activation by type (skills vs community)
+   - Tracks engagement funnels (displayed -> initiated -> completed)
+  
+8. Maintainability wins
+   - Add new metric = add new flag (don't need new query)
+   - Change filter logic = modify one WHERE clause section
+   - All metrics stay in sync (same filtering applied)
+---
+
+## Phase 3: Dashboard Integration & Validation
+
+### Goal
+Integrate the consolidated query into the Databricks dashboard and ensure all visualizations match the original dashboard exactly.
+
+### Context
+After consolidation was complete, the query needed to be:
+1. Made user-friendly with dynamic parameters
+2. Connected to dashboard with calculated fields
+3. Validated to ensure visualizations matched the original dashboard
+
+This phase ensured the optimized backend (consolidated query) produced identical frontend results (dashboard metrics and charts) as the original 18-query version.
+
+### Timeline
+~2-3 weeks of dashboard integration, calculation setup, and comprehensive validation
+
+---
+
+### Step 1: Adding Dynamic Parameters
+
+**Challenge:** Original queries had hardcoded date ranges, platforms, countries, and experiment names. Changing filters required modifying SQL code directly.
+
+**Solution:** Following guidance from my supervisor, implemented Databricks dashboard parameters for dynamic filtering.
+
+**Parameters Added:**
+
+1. **`:date_range`** 
+   - Type: Date range selector
+   - Purpose: Allow users to select custom date ranges without editing SQL
+   - Implementation: `WHERE date BETWEEN :date_range.min AND :date_range.max`
+
+2. **`:param_platform`**
+   - Type: Multi-select dropdown
+   - Options: `ios app`, `android app`
+   - Purpose: Filter by mobile platform
+   - Implementation: `WHERE ARRAY_CONTAINS(:param_platform, platform)`
+
+3. **`:param_country`**
+   - Type: Multi-select dropdown
+   - Options: Market codes (market_a, market_b, market_c, etc.)
+   - Purpose: Filter by geographic market
+   - Implementation: `WHERE ARRAY_CONTAINS(:param_country, country)`
+
+4. **`:param_experiment`**
+   - Type: Text input
+   - Purpose: Switch between different experiments without changing query
+   - Implementation: `WHERE experiments[:param_experiment].variant IS NOT NULL`
+
+**Benefits:**
+- ✅ Dashboard users can change filters dynamically
+- ✅ No SQL editing required for routine analysis
+- ✅ Reduces risk of query errors from manual editing
+- ✅ Enables self-service analytics for stakeholders
+
+**Example Usage:**
+```sql
+-- Before (hardcoded):
+WHERE date BETWEEN DATE('2024-09-01') AND LAST_DAY(DATE('2024-09-01'))
+  AND platform IN ('ios app', 'android app')
+  AND experiments['experiment-feature-test'].variant IS NOT NULL
+
+-- After (parameterized):
+WHERE date BETWEEN :date_range.min AND :date_range.max
+  AND ARRAY_CONTAINS(:param_platform, platform)
+  AND experiments[:param_experiment].variant IS NOT NULL
+```
+
+---
+
+### Step 2: Creating Calculated Fields in Dashboard Schema
+
+**Challenge:** The consolidated query uses a single WHERE clause covering ALL events (not separated by event type like the original 18 queries). This means the base data includes all events, and we need calculated fields to segment metrics correctly.
+
+**Key Difference from Original Queries:**
+
+**Original/Converted Queries (Separated):**
+```sql
+-- Query #7: Content Exposure - SPECIFIC event filter
+SELECT COUNT(DISTINCT uid) as users
+FROM analytics_events
+WHERE event_name = 'content_cards_viewed'  -- Only content events
+  AND date BETWEEN ... 
+  AND platform IN ...
+```
+**Consolidated Query (All events combined):**
+```sql
+-- Single query with ALL events in WHERE clause
+SELECT 
+    uid,
+    CASE WHEN event_name = 'content_cards_viewed' THEN 1 END as flag_impression_content
+FROM analytics_events
+WHERE event_name IN (
+    'content_cards_viewed',      -- For content exposure
+    'feature_displayed',         -- For feature exposure
+    'video_viewed',              -- For activation
+    ...                          -- All 16+ event types
+)
+AND date BETWEEN ... 
+AND platform IN ...
+```
+**The Problem:**
+- Original queries: Each query only fetched specific events → COUNT(DISTINCT uid) automatically correct
+- Consolidated query: Fetches ALL events → Need flags to filter which users count for which metric
+
+**Solution: Created custom calculations in Databricks Dashboard Schema that use flags to replicate the original query logic.**
+
+---
+
+### Step 3: Dashboard Visualization Validation
+
+**Challenge:** Ensure the new consolidated query + calculated fields produces identical dashboard outputs as the original 18-query dashboard.
+
+**Validation Approach:**
+
+Used the original dashboard as reference and systematically validated each visualization.
+
+**Validation Process:**
+
+**Stage 1: Query-Level Validation (Table Comparison)**
+
+Similar to Phase 1 validation approach:
+
+1. **Export consolidated query results** to validation spreadsheet
+2. **Export each original converted query result** (the 18 separated queries from Phase 1)
+3. **Map calculated fields** to original query metrics
+4. **Compare values** for each metric across all dimension combinations
+
+**Challenge Encountered:**
+
+Since the consolidated query combines all events, direct table comparison wasn't straightforward like Phase 1.
+
+**Solution:**
+
+Manually added calculated field metrics to dashboard table visualization, then validated against original converted query results.
+
+**Example Validation:**
+
+| Metric | Original Query #7 Output | Consolidated Query + Calc Field | Match |
+|--------|--------------------------|----------------------------------|-------|
+| Content Exposure Users | 16,063 | `COUNT(DISTINCT CASE WHEN flag_impression_content = 1 THEN uid END)` = 16,063 | ✅ |
+| Video Impressions | 123,456 | `SUM(flag_impression_skills)` = 123,456 | ✅ |
+| Activation Rate | 27.8% | Calculated field formula = 27.8% | ✅ |
+
+**Stage 2: Visualization-Level Validation**
+
+For each chart/table in the original dashboard:
+
+1. **Identified the data source** - Which of the 18 original queries powered this visual?
+2. **Located equivalent calculated field** - Which flag-based calculation replaces it?
+3. **Added visualization to new dashboard** - Using consolidated query + calculated field
+4. **Compared outputs side-by-side** - Original dashboard vs. new dashboard
+5. **Verified numbers matched** - Checked all dimension breakdowns (date, platform, variant, site)
+
+**Dashboard Components Validated:**
+
+- ✅ **Experiment pool table** - User counts by site/platform/variant
+- ✅ **Content exposure charts** - Impression counts and rates
+- ✅ **Activation funnel** - Skills vs. community activation
+- ✅ **Engagement metrics** - Video plays, subtitle usage, bookmarks
+- ✅ **Community metrics** - Thread creation, likes, comments, shares
+- ✅ **Notification metrics** - Tooltip interactions, notification reads
+- ✅ **Time series charts** - All metrics over time
+- ✅ **Breakdown tables** - By country, platform, content type
+
+**Validation Testing Scenarios:**
+
+Tested dashboard with different parameter combinations to ensure flexibility:
+
+1. **Different date ranges** - 1 week, 1 month, 3 months, custom ranges
+2. **Different platforms** - iOS only, Android only, both combined
+3. **Different markets** - Individual countries, regional groupings, all markets
+4. **Different experiment variants** - Control vs. treatment comparisons
+
+**Result:** All visualizations matched original dashboard exactly across all test scenarios.
+
+**Issues Found:** None - All calculated fields produced equivalent results to original separated queries.
+
+**Validation Duration:** ~1-2 weeks of systematic testing and comparison
+
+**Sign-off:** 
+- Reviewed dashboard with supervisor
+- Demonstrated equivalence to original dashboard
+- Confirmed all metrics accessible and accurate
+- Presented to the stakeholders
+
+---
+
+### Phase 3 Results
+
+**Dashboard Integration:**
+- ✅ **4 dynamic parameters** implemented for self-service filtering
+- ✅ **20+ calculated fields** created in dashboard schema
+- ✅ **All visualizations validated** - 100% match to original dashboard
+- ✅ **Tested across multiple scenarios** - Different dates, platforms, markets, variants
+
+**User Experience Improvements:**
+- **Before:** Users needed to request SQL changes for different date ranges or filters
+- **After:** Users can dynamically change parameters without technical assistance
+- **Impact:** Self-service analytics enabled for product and business teams
+
+**Dashboard Performance:**
+- **Before (21 queries):** Days to load, frequent timeouts
+- **After (1 consolidated query + 2 converted queries + 3 original query):** **3-8 minutes** consistently
+- **Improvement:** Dashboard now usable for real-time experiment monitoring
+
+**Maintainability Improvements:**
+- **Before:** 21 queries to update when logic changes
+- **After:** 5 queries to maintain, calculations visible in dashboard schema
+- **Impact:** Reduced maintenance burden, easier knowledge transfer
+
+**Final Dashboard Architecture:**
+
+┌─────────────────────────────────────────┐
+│ Databricks Dashboard (Frontend) │
+├─────────────────────────────────────────┤
+│ • 4 Dynamic Parameters │
+│ • 20+ Calculated Fields (Schema) │
+│ • 15+ Visualizations │
+└──────────────┬──────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│ Consolidated Query (Backend) │
+├─────────────────────────────────────────┤
+│ • 1 main query (replaces 16) │
+│ • 2 converted queries │
+| • 3 original queries |
+│ • Total: 6 queries (was 21 originally) │
+└──────────────┬──────────────────────────┘
+│
+▼
+┌─────────────────────────────────────────┐
+│ Purpose-Built Analytical Table │
+│ analytics_events │
+└─────────────────────────────────────────┘
+
+**Documentation Delivered:**
+- Calculated field definitions and formulas
+- Validation results spreadsheet
+- Migration notes for future reference
+
+**Stakeholder and Team Feedback:**
+- Engagement & Career Hub team: "Dashboard is finally usable for decision-making"
+- Business users: "Love that now it is usable"
+
