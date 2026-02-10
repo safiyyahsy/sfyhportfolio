@@ -29,10 +29,10 @@ subtitle: A two-phase approach to data migration and query consolidation
   - [Step 2: Creating Calculated Fields](#step-2-creating-calculated-fields-in-dashboard-schema)
   - [Step 3: Dashboard Visualization Validation](#step-3-dashboard-visualization-validation)
 - [Overall Results](#overall-results)
-- [Technical Challenges & Solutions](#technical-challenges--solutions)
-- [Skills Demonstrated](#skills-demonstrated)
-- [Business Impact](#business-impact)
-- [Lessons Learned](#lessons-learned)
+- [Project Summary](#project-summary)
+- [Quantified Impact](#quantified-impact)
+- [Timeline](#timeline)
+- [Key Deliverables](#key-deliverables)
 
 ---
 
