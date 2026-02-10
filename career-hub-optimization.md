@@ -220,20 +220,103 @@ For each converted query, compared results across all dimension combinations:
 
 **Validation Duration:** ~1 week of systematic testing and documentation
 
-### Example: Migration of Content Exposure Query
+### Example: Migration of Experiment Pool Query
 
-**BEFORE (using candidate_staging):**
+This example shows the first query migrated: tracking users exposed to the experiment.
+
+**BEFORE (using shared_events table):**
 ```sql
--- Original query structure (simplified for confidentiality)
 SELECT
-    event_date_utc,
-    experiment_variant,
-    COUNT(DISTINCT uid) as visitors,
-    COUNT(DISTINCT content_impression_id) as impressions
-FROM candidate_staging
-WHERE 1=1
-    AND event_date_utc BETWEEN '2024-09-01' AND '2024-09-30'
-    AND event_name = 'content_viewed'
-    AND experiment_variant IS NOT NULL
-    AND LOWER(country) IN ('au', 'nz', 'sg', 'my')
-GROUP BY event_date_utc, experiment_variant;
+  activity_site AS site
+  ,platform
+  ,experiments['experiment-feature-test'].variant AS variant
+  ,COUNT(DISTINCT visitor_id) AS users
+  ,COUNT(DISTINCT session_id) AS visits
+  ,COUNT(DISTINCT session_id)/COUNT(DISTINCT visitor_id) AS visit_per_uv
+  
+FROM analytics_platform.legacy_data.shared_events
+  
+WHERE 1=1 
+  -- Date filter
+  AND event_date_site BETWEEN DATE('2024-09-01') AND LAST_DAY(DATE('2024-09-01'))
+  
+  -- Platform filter
+  AND platform IN ('ios app','android app')
+  
+  -- Site/market filter
+  AND activity_site IN ('site_a', 'site_b', 'site_c', 'site_d', 'site_e', 'site_f', 'site_g', 'site_h')
+  
+  -- Experiment participation
+  AND experiments['experiment-feature-test'].variant IS NOT NULL
+  
+  -- Data source filter (specific to old table)
+  AND system_source IN ('segment')
+  
+  -- Event filter
+  AND LOWER(source_event_name) IN ('page_displayed')
+  
+  -- Data quality checks (specific to old table)
+  AND event_date_site IS NOT NULL
+  AND event_name IS NOT NULL
+  AND record_is_valid = 'true'
+    
+GROUP BY ALL
+ORDER BY 1,2,3
+```
+**AFTER (using analytics_event table):
+```sql
+SELECT
+  LOWER(brand_country) AS site  -- Column mapping + case conversion
+  ,platform
+  ,experiments['experiment-feature-test'].variant AS variant
+  ,COUNT(DISTINCT uid) AS users  -- visitor_id → uid
+  ,COUNT(DISTINCT vid) AS visits  -- session_id → vid
+  ,COUNT(DISTINCT vid)/COUNT(DISTINCT uid) AS visit_per_uv
+  
+FROM analytics_platform.analytics_db.analytics_events  -- New purpose-built table
+  
+WHERE 1=1 
+  -- Date filter (renamed column)
+  AND date BETWEEN DATE('2024-09-01') AND LAST_DAY(DATE('2024-09-01'))
+  
+  -- Platform filter (unchanged)
+  AND platform IN ('ios app','android app')
+  
+  -- Site/market filter (new column + abbreviated values)
+  AND LOWER(brand_country) IN ('sa', 'sb', 'sc', 'sd', 'se', 'sf', 'sg', 'sh')
+  
+  -- Experiment participation (unchanged nested structure)
+  AND experiments['experiment-feature-test'].variant IS NOT NULL
+  
+  -- Event filter (renamed column)
+  AND LOWER(event_name) IN ('page_displayed')
+  
+  -- Data quality checks (simplified for new table)
+  AND date IS NOT NULL
+    
+GROUP BY ALL
+ORDER BY 1,2,3
+```
+**Key Schema Mapping Applied:**
+
+| Change Type | Old Table | New Table | Notes | 
+|-------------|-----------|-----------|-------|
+| Table Name | legacy_data.shared_events | analytics_db.analytics_events | Purpose-built analytics table |
+| Site column | activity_site | LOWER(brand_country) | Column renamed + case conversion required |
+| Site values | Full names ( site_a, site_b ) | Abbreviated codes ( sa, sb ) | Value format change |
+| Date column | event_date_site | date | Column renamed |
+| User ID | visitor_id | uid | Colunm renamed |
+| Session ID | session_id | vid | Colunm renamed |
+| Event name | source_event_name | event_name | Colunm renamed |
+| Source filter | system_source field | (removed) | Not available in new table |
+| Validation flag | record_is_valid = 'true' | (removed) | New table uses different quality approach |
+
+**Conversion Challenges:**
+
+1. Multiple column renames: 5 columns required mapping to new names
+2. Case sensitivity: brand_country required LOWER() for consistent filtering
+3. Value format changes: Site identifiers changed from full names to abbreviated codes
+4. Missing validation fields: system_source and record_is_valid not available in new table - had to verify data quality was maintained without them
+5. Simplified WHERE clause: New table structure eliminated need for some filters
+
+Result: Successfully migrated with 100% data accuracy (validated via spreadsheet comparison across all site/platform/variant combinations)
