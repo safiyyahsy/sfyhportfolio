@@ -47,7 +47,7 @@ subtitle: A two-phase approach to data migration and query consolidation
 
 ## The Problem
 
-The Career Hub Experiment dashboard was critical for tracking user engagement experiments across multiple markets (AU, NZ, SG, MY, PH, ID, HK, TH). However, it had become unusable:
+The Career Hub Experiment dashboard was critical for tracking user engagement experiments across multiple markets. However, it had become unusable:
 
 **Symptoms:**
 - Dashboard load time: **Several days** (not a typo - it would time out repeatedly)
@@ -74,7 +74,7 @@ Thus, the proposed solution are:
 
 1. **Phase 1 (Foundation):** Migrate to purpose-built analytical table
 2. **Phase 2 (Optimization):** Consolidate query logic using CTEs
-3. **Phase 3:** Dashboard Integration & Validation
+3. **Phase 3 (Dashboard Integration & Validation)** 
 
 ---
 
@@ -1133,7 +1133,6 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 - Databricks: Query development, notebooks, dashboard creation
 - SQL: Production-level query writing and optimization
 - Excel: Validation spreadsheets, automated difference calculations
-- Confluence: Technical documentation and knowledge sharing
 
 **Dashboard Development:**
 - Databricks dashboard parameter implementation
@@ -1239,15 +1238,10 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 
 ### Stakeholder Benefits
 
-**Product Team:**
+**Engagement & Career Hub Analytics Team:**
 - Can monitor experiments in real-time during testing periods
 - Make data-driven decisions without waiting for reports
 - Self-service filtering reduces turnaround time
-
-**Data Team:**
-- Reduced maintenance burden (1 query vs. 18)
-- Freed up time for higher-value work
-- Established pattern for future optimizations
 
 **Business Stakeholders:**
 - Reliable access to experiment metrics
@@ -1361,8 +1355,7 @@ Comprehensive documentation means this approach can be replicated for other dash
 - **Databricks**: Cloud data platform, SQL query execution, dashboard development
 - **SQL**: Query development, optimization, CTEs, window functions
 - **Excel**: Data validation, comparison analysis, automated calculations
-- **Confluence**: Technical documentation, knowledge sharing, process guides
 
 ---
 
-[← Back to Projects](/projects)
+[← Back to Projects](/projects.md)
