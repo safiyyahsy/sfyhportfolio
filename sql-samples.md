@@ -556,7 +556,7 @@ Metric: SUM([video_uv])
 
 **Note:** Additional SQL examples from other projects will be added as documentation progresses.
 
-[← Back to Projects](/projects)
+[← Back to Projects](/projects.md)
 
 
 
