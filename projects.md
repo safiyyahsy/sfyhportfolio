@@ -118,4 +118,4 @@ Interested in discussing these projects or potential opportunities?
 
 📧 [Email](mailto:safiyyahsy28@example.com)  
 💼 [LinkedIn](www.linkedin.com/in/nsin28)  
-📂 [Download Resume](link-to-resume) *(optional)*
+📂 [Download Resume](NurSafiyyahInsyirahNordin.pdf)
