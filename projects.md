@@ -58,6 +58,8 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL (CTEs, conditional logic), metric definition, documentation
 
+**📄 [View detailed technical case study →](/user-segmentation-analysis.md)**
+
 ---
 ### 4. Technical Documentation & Data Governance
 **Deliverables:**
