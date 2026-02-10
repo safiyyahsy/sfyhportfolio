@@ -389,7 +389,7 @@ WITH content_viewers AS (
         LOWER(content_provider_meta) LIKE '%technology_partner%'
         AND event_name = 'video_viewed'
         AND YEAR(date) = '2025'
-),
+), 
 
 career_history AS (
     -- Get employment and work history data
