@@ -13,7 +13,6 @@ subtitle: Defining and quantifying student and graduate segments using multi-tab
 - [Metric Definitions](#metric-definitions)
 - [SQL Implementation](#sql-implementation)
 - [Results & Insights](#results--insights)
-- [Documentation Delivered](#documentation-delivered)
 - [Skills Demonstrated](#skills-demonstrated)
 
 ---
