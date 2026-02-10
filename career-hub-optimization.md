@@ -4,6 +4,38 @@ title: "Case Study: Career Hub Dashboard Optimization"
 subtitle: A two-phase approach to data migration and query consolidation
 ---
 
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [The Problem](#the-problem)
+- [Solution Approach](#solution-approach)
+- [Phase 1: Data Migration](#phase-1-data-migration)
+  - [Goal](#goal)
+  - [Challenges Faced](#challenges-faced)
+  - [Migration Process](#migration-process)
+  - [Example: Migration of Experiment Pool Query](#example-migration-of-experiment-pool-query)
+  - [Phase 1 Results](#phase-1-results)
+- [Phase 2: Query Consolidation](#phase-2-query-consolidation)
+  - [Goal](#goal-1)
+  - [The Problem After Phase 1](#the-problem-after-phase-1)
+  - [Analysis: Pattern Recognition](#analysis-pattern-recognition)
+  - [Consolidation Strategy](#consolidation-strategy)
+  - [Consolidation Process](#consolidation-process)
+  - [Example: Before Consolidation](#example-before-consolidation)
+  - [Example: After Consolidation](#example-after-consolidation)
+- [Phase 3: Dashboard Integration & Validation](#phase-3-dashboard-integration--validation)
+  - [Goal](#goal-2)
+  - [Step 1: Adding Dynamic Parameters](#step-1-adding-dynamic-parameters)
+  - [Step 2: Creating Calculated Fields](#step-2-creating-calculated-fields-in-dashboard-schema)
+  - [Step 3: Dashboard Visualization Validation](#step-3-dashboard-visualization-validation)
+- [Overall Results](#overall-results)
+- [Technical Challenges & Solutions](#technical-challenges--solutions)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Business Impact](#business-impact)
+- [Lessons Learned](#lessons-learned)
+
+---
+
 ## Project Overview
 
 **Duration:** ~3 months  
@@ -42,6 +74,7 @@ Thus, the proposed solution are:
 
 1. **Phase 1 (Foundation):** Migrate to purpose-built analytical table
 2. **Phase 2 (Optimization):** Consolidate query logic using CTEs
+3. **Phase 3:** Dashboard Integration & Validation
 
 ---
 
