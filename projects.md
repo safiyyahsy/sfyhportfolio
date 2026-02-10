@@ -44,6 +44,8 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** Requirements gathering, data modeling, Tableau, stakeholder management
 
+**📄 [View detailed case study →](/skills-content-dashboard)**
+
 ---
 
 ### 3. User Segmentation Analysis
