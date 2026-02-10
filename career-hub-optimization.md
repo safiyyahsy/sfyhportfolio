@@ -29,10 +29,10 @@ subtitle: A two-phase approach to data migration and query consolidation
   - [Step 2: Creating Calculated Fields](#step-2-creating-calculated-fields-in-dashboard-schema)
   - [Step 3: Dashboard Visualization Validation](#step-3-dashboard-visualization-validation)
 - [Overall Results](#overall-results)
-- [Project Summary](#project-summary)
-- [Quantified Impact](#quantified-impact)
-- [Timeline](#timeline)
-- [Key Deliverables](#key-deliverables)
+- [Technical Challenges & Solutions](#technical-challenges--solutions)
+- [Skills Demonstrated](#skills-demonstrated)
+- [Business Impact](#business-impact)
+- [Lessons Learned](#lessons-learned)
 
 ---
 
@@ -948,29 +948,29 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 
 **Final Dashboard Architecture:**
 
-┌─────────────────────────────────────────┐
+┌─────────────────────────────────┐
 │ Databricks Dashboard (Frontend) │
-├─────────────────────────────────────────┤
+├─────────────────────────────────┤
 │ • 4 Dynamic Parameters │
 │ • 20+ Calculated Fields (Schema) │
 │ • 15+ Visualizations │
-└──────────────┬──────────────────────────┘
+└──────────────┬──────────────────┘
 │
 ▼
-┌─────────────────────────────────────────┐
+┌─────────────────────────────────┐
 │ Consolidated Query (Backend) │
-├─────────────────────────────────────────┤
+├─────────────────────────────────┤
 │ • 1 main query (replaces 16) │
 │ • 2 converted queries │
 | • 3 original queries |
 │ • Total: 6 queries (was 21 originally) │
-└──────────────┬──────────────────────────┘
+└──────────────┬──────────────────┘
 │
 ▼
-┌─────────────────────────────────────────┐
+┌─────────────────────────────────┐
 │ Purpose-Built Analytical Table │
 │ analytics_events │
-└─────────────────────────────────────────┘
+└──────────────────────────-──────┘
 
 **Documentation Delivered:**
 - Calculated field definitions and formulas
@@ -1015,3 +1015,354 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 - Engagement & Career Hub team: "Dashboard is finally usable for decision-making"
 - Business users: "Love that now it is usable"
 
+---
+
+## Technical Challenges & Solutions
+
+### Challenge 1: Missing Data Fields Blocking Migration
+
+**Problem:** 
+- 3 out of 21 queries relied on fields that didn't exist in the new analytical table
+- Fields like `system_source`, `record_is_valid`, and vendor-specific properties were not migrated
+- These queries were critical for certain analyses and couldn't simply be removed
+
+**Solution:** 
+- Analyzed which queries absolutely required the missing fields
+- Made pragmatic decision: Keep those 3 queries running on old table (`shared_events`)
+- Migrated the other 18 queries to new table for performance gains
+- Documented the hybrid approach and fields that prevented full migration
+- Result: 86% migration success rate while maintaining all required functionality
+
+---
+
+### Challenge 2: Schema Mapping Complexity
+
+**Problem:** 
+- 27+ field mappings required between old and new tables
+- Nested properties (`raw_properties.xxx`) → flat columns
+- Inconsistent case sensitivity across tables
+- Some fields completely unavailable in new table
+
+**Solution:**
+- Created comprehensive mapping document with all field conversions
+- Used `LOWER()` functions for case consistency
+- Identified 3 queries that couldn't migrate due to missing fields
+- Kept those 3 queries on old table as acceptable compromise
+
+---
+
+### Challenge 3: Validation at Scale
+
+**Problem:**
+- Needed to validate 18 converted queries across multiple dimensions
+- Each query had 30-50 combinations (site × platform × variant)
+- Manual comparison would be error-prone and time-consuming
+
+**Solution:**
+- Built systematic validation spreadsheet with automated difference calculations
+- Validated 500+ individual metric comparisons
+- Formula-driven approach: `% Difference = (New - Old) / Old × 100`
+- Achieved 100% accuracy match across all validations
+
+---
+
+### Challenge 4: Consolidation Without Breaking Logic
+
+**Problem:**
+- 18 queries had different WHERE clauses filtering on different events
+- How to combine without losing metric specificity?
+- Traditional JOIN approach would be complex and potentially slow
+
+**Solution:**
+- Flag-based architecture: Single query with CASE WHEN flags for each metric
+- Flags act as "virtual WHERE clauses" for dashboard calculations
+- Example: `CASE WHEN event_name = 'content_viewed' THEN 1 END AS flag_impression`
+- Dashboard calculates: `COUNT(DISTINCT CASE WHEN flag_impression = 1 THEN uid END)`
+
+---
+
+### Challenge 5: Dashboard Visualization Equivalence
+
+**Problem:**
+- Consolidated query structure completely different from original 18 queries
+- How to prove visualizations show identical results?
+- Direct query comparison not possible due to different output formats
+
+**Solution:**
+- Two-stage validation:
+  1. Query-level: Validated calculated fields against original query outputs
+  2. Visual-level: Side-by-side comparison of dashboard charts with original
+- Tested with multiple parameter combinations
+- Documented equivalence for stakeholder confidence
+
+---
+
+### Challenge 6: Performance Testing Without Production Impact
+
+**Problem:**
+- Couldn't test with full production load without affecting other users
+- Needed to validate performance improvements safely
+
+**Solution:**
+- Tested with smaller date ranges initially
+- Ran during off-peak hours for full validation
+- Gradual rollout approach: validated 1 query → 5 queries → full dashboard
+- Monitored Databricks resource usage throughout
+
+---
+
+## Skills Demonstrated
+
+### Technical Skills
+
+**SQL & Query Optimization:**
+- Advanced SQL: CTEs, window functions, conditional aggregation, CASE WHEN logic
+- Query performance tuning and execution plan analysis
+- Flag-based architecture design for analytical flexibility
+- Complex WHERE clause consolidation
+- NULL handling and data type conversions
+
+**Data Engineering:**
+- Schema mapping and data migration between tables
+- ETL logic design (extract from old table, transform structure, load to new table)
+- Data validation methodology at scale
+- Dimensional modeling concepts (purpose-built analytical tables)
+- Data quality checks and integrity validation
+
+**Platform & Tools:**
+- Databricks: Query development, notebooks, dashboard creation
+- SQL: Production-level query writing and optimization
+- Excel: Validation spreadsheets, automated difference calculations
+- Confluence: Technical documentation and knowledge sharing
+
+**Dashboard Development:**
+- Databricks dashboard parameter implementation
+- Calculated field creation in dashboard schema
+- Visualization design and validation
+- Self-service analytics enablement
+
+### Analytical Skills
+
+**Problem Solving:**
+- Root cause analysis (identified inefficient data source as core issue)
+- Pattern recognition (found consolidation opportunities across 18 queries)
+- Multi-phase solution design (migration first, then optimization)
+- Trade-off evaluation (3 queries kept on old table vs. full migration)
+
+**Data Validation:**
+- Systematic validation methodology design
+- Statistical comparison across 500+ metric combinations
+- Edge case identification and testing
+- Accuracy verification at multiple levels (query, calculation, visualization)
+
+**Business Analysis:**
+- Requirements gathering from stakeholders
+- Impact assessment (performance, usability, maintenance)
+- Risk mitigation (gradual rollout, comprehensive testing)
+- Stakeholder communication and sign-off management
+
+### Project Management Skills
+
+**Planning & Execution:**
+- Three-phase project structure with clear goals
+- Timeline management (~3 months total)
+- Dependency management (Phase 2 required Phase 1 completion)
+- Scope management (identified what could/couldn't be migrated)
+
+**Documentation:**
+- Technical documentation (schema mapping, query logic, validation results)
+- Process documentation (migration steps, consolidation approach)
+- User guides (parameter usage, dashboard functionality)
+- Knowledge transfer materials for team
+
+**Stakeholder Management:**
+- Regular updates to product and data teams
+- Validation review sessions
+- Dashboard demonstrations
+- Sign-off procurement at each phase
+
+### Soft Skills
+
+**Attention to Detail:**
+- Zero variance achieved in validation (100% accuracy)
+- Systematic approach to complex migration
+- Comprehensive testing across scenarios
+
+**Communication:**
+- Technical documentation for data team
+- User-friendly guides for business stakeholders
+- Clear explanation of trade-offs and limitations
+
+**Initiative:**
+- Identified consolidation opportunity beyond migration scope
+- Proposed flag-based architecture for flexibility
+- Suggested parameterization for self-service analytics (with supervisor guidance)
+
+---
+
+## Business Impact
+
+### Immediate Impact
+
+**Dashboard Usability Restored:**
+- Dashboard went from unusable (days to load) to real-time (12 seconds)
+- Stakeholders could finally access experiment results when needed
+- Decision-making no longer blocked by technical limitations
+
+**Resource Contention Eliminated:**
+- Reduced database CPU usage by ~60%
+- Other Databricks users no longer impacted by dashboard queries
+- Analytics team could run other analyses without slowdowns
+
+**Self-Service Analytics Enabled:**
+- Product teams can now filter by date/platform/country without SQL knowledge
+- Reduced dependency on data team for routine analysis
+- Faster iteration on experiment insights
+
+### Long-Term Impact
+
+**Scalable Foundation:**
+- Purpose-built analytical table can support future dashboards
+- Flag-based architecture pattern reusable for other projects
+- Migration process documented for similar optimization efforts
+
+**Maintenance Efficiency:**
+- Before: Updating logic required changing 21 queries
+- After: Single query update propagates to all metrics
+- Reduced risk of inconsistencies across dashboard
+- Easier onboarding for new team members
+
+**Knowledge Sharing:**
+- Established best practices for query optimization
+- Created reusable validation methodology
+- Documented schema mapping approach for future migrations
+
+### Stakeholder Benefits
+
+**Product Team:**
+- Can monitor experiments in real-time during testing periods
+- Make data-driven decisions without waiting for reports
+- Self-service filtering reduces turnaround time
+
+**Data Team:**
+- Reduced maintenance burden (1 query vs. 18)
+- Freed up time for higher-value work
+- Established pattern for future optimizations
+
+**Business Stakeholders:**
+- Reliable access to experiment metrics
+- Confidence in data accuracy (100% validated)
+- Better visibility into user engagement across markets
+
+### Quantified Business Value
+
+**Time Savings:**
+- Data team: ~5-10 hours/month saved on maintenance and ad-hoc requests
+- Product team: Eliminated wait time for SQL changes (self-service)
+- Stakeholders: 100+ daily users benefit from fast dashboard loads
+
+**Risk Reduction:**
+- Eliminated timeout failures during critical experiment periods
+- Reduced data inconsistency risk (single source of truth)
+- Validated accuracy gives confidence in decision-making
+
+**Experiment Velocity:**
+- Faster access to results enables quicker iteration
+- Real-time monitoring allows mid-experiment adjustments
+- Better experiment insights drive product improvements
+
+---
+
+## Lessons Learned
+
+### What Worked Well
+
+**Two-Phase Technical Approach:**
+- Separating migration (Phase 1) from consolidation (Phase 2) allowed incremental validation
+- Each phase had clear success criteria and deliverables
+- Reduced risk: if consolidation failed, migration alone still provided value
+
+**Systematic Validation Methodology:**
+- Validation spreadsheet approach caught issues early
+- Line-by-line comparison gave confidence in accuracy
+- Automated difference calculations made validation scalable
+
+**Stakeholder Involvement:**
+- Early communication about project scope and timeline
+- Regular check-ins prevented surprises
+- Dashboard demonstration sessions built confidence
+
+**Flag-Based Architecture:**
+- More flexible than traditional separate queries
+- Easier to add new metrics (just add flags)
+- Dashboard calculations transparent and maintainable
+
+### What I'd Do Differently
+
+**Earlier Performance Profiling:**
+- Should have measured baseline performance metrics more systematically
+- Would have helped quantify improvement more precisely
+- Lesson: Start with clear "before" metrics to prove "after" impact
+
+**Automated Validation Scripts:**
+- Manual Excel validation worked but was time-intensive
+- Could have written Python scripts to automate comparison
+- Lesson: Invest in automation for repetitive validation tasks
+
+**Incremental Consolidation:**
+- Consolidated 16 queries at once (big bang approach)
+- Could have consolidated in smaller batches (5 queries → 10 queries → 16 queries)
+- Lesson: Break large changes into smaller, testable increments
+
+**Parameter Planning Earlier:**
+- Parameterization added in Phase 3 as enhancement
+- Could have designed with parameters from Phase 2
+- Lesson: Think about end-user experience earlier in design
+
+### Key Takeaways
+
+**1. Fix the Foundation First:**
+Performance issues often stem from data architecture, not just query logic. Phase 1 (migration to purpose-built table) enabled Phase 2 (consolidation) to be effective.
+
+**2. Validate Obsessively:**
+100% accuracy validation gave stakeholders confidence to adopt new dashboard. Without thorough validation, the performance gains wouldn't matter if data was wrong.
+
+**3. Think Beyond the Immediate Problem:**
+Project started as migration, but identifying consolidation opportunity (Phase 2) and adding parameterization (Phase 3) multiplied the value delivered.
+
+**4. Documentation Enables Scale:**
+Comprehensive documentation means this approach can be replicated for other dashboards facing similar issues.
+
+**5. Trade-offs Are Acceptable:**
+3 queries couldn't migrate due to missing data - keeping them on old table was acceptable compromise. Perfect migration wasn't required for significant improvement.
+
+### Skills I Developed
+
+**Technical Growth:**
+- Deepened SQL optimization expertise (CTEs, performance tuning)
+- Learned flag-based architecture pattern for analytics
+- Improved data validation methodology
+- Gained experience with Databricks dashboard features
+
+**Process Improvement:**
+- Learned to structure complex projects into phases
+- Developed systematic validation approach
+- Improved technical documentation skills
+
+**Business Acumen:**
+- Better understanding of balancing technical perfection vs. business value
+- Learned to communicate technical work to non-technical stakeholders
+- Developed sense for when "good enough" is actually good enough
+
+---
+
+## Tools & Technologies
+
+- **Databricks**: Cloud data platform, SQL query execution, dashboard development
+- **SQL**: Query development, optimization, CTEs, window functions
+- **Excel**: Data validation, comparison analysis, automated calculations
+- **Confluence**: Technical documentation, knowledge sharing, process guides
+
+---
+
+[← Back to Projects](/projects)
