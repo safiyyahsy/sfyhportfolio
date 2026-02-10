@@ -119,14 +119,106 @@ Created comprehensive mapping document for field conversion:
 5. **Naming Conventions:** Content-specific fields gained clearer prefixes in new table
 
 **Step 3: Convert Queries One-by-One**
-- Rewrote each query using new table schema
-- Maintained original logic exactly
-- Added validation queries to compare results
+
+**Conversion Process:**
+
+1. **Identify pattern within group** - Find the common query structure
+2. **Convert first query in pattern** - Apply all schema mappings, test thoroughly
+3. **Use as template** - Adapt the working conversion for similar queries
+4. **Individual testing** - Run each converted query and verify output
+5. **Document issues** - Track which queries had problems
+
+**Tracking Method:**
+
+- Used Databricks notebook with clear section headers for each query
+- Named queries descriptively: `Query_01_Content_Exposure`, `Query_02_Content_Engagement`, etc.
+- Commented each query with: Original purpose, conversion date, validation status
+- Maintained running list of successfully converted vs. blocked queries
+
+**Conversion Blockers:**
+
+3 queries **could not be converted** due to missing data in the new analytical table:
+
+| Query # | Purpose | Issue | Solution |
+|---------|---------|-------|----------|
+| Query 8 | Specific attribution analysis | Required fields not available in `analytics_events` | Kept using original `shared_events` table |
+| Query 15 | Detailed site section metrics | Required fields not available in `analytics_events` | Kept using original `shared_events` table |
+| Query 19 | Data quality validation | Required fields not available in `analytics_events` | Kept using original `shared_events` table |
+
+**Decision:** These 3 queries remained on the original table (`shared_events`) because the new purpose-built table didn't contain all necessary fields for their specific use cases. The dashboard continued to use a hybrid approach: 18 queries from new table + 3 queries from old table.
+
+**Migration Success Rate:** 18 out of 21 queries successfully migrated (86%)
+
+**Important note:** While not ideal to have mixed data sources, this was acceptable because:
+- Their resource impact was minimal compared to the total 21 original queries
+- Full migration would have required additional data engineering work beyond project scope
 
 **Step 4: Validation**
-- Ran old and new queries side-by-side
-- Compared row counts, metrics, aggregations
-- Line-by-line verification for accuracy
+
+Ensuring data accuracy was critical since the dashboard informed experiment decisions affecting product strategy.
+
+**Validation Methodology:**
+
+Created comprehensive validation spreadsheet comparing original vs. converted queries at granular level.
+
+**Validation Structure:**
+
+For each converted query, compared results across all dimension combinations:
+- **Dimensions validated:** Site (market), Platform (iOS/Android), Experiment Variant (control/treatment)
+- **Metrics validated:** Users, Visits, Visit_per_UV (visits per unique visitor)
+- **Calculation:** Difference = Converted - Original, % Difference = (Difference / Original) × 100
+
+**Validation Spreadsheet Format:**
+
+| Site | Platform | Variant | Users (Original) | Visits (Original) | Visit_per_UV (Original) | Users (Converted) | Visits (Converted) | Visit_per_UV (Converted) | % Diff Users | % Diff Visits | % Diff Rate |
+|------|----------|---------|------------------|-------------------|-------------------------|-------------------|--------------------|--------------------------|--------------|--------------|--------------| 
+| Market A | android | 0 | 16,063 | 23,557 | 1.466538007 | 16,063 | 23,557 | 1.466538007 | 0% | 0% | 0% |
+| Market A | ios | 0 | 24,364 | 37,159 | 1.525160072 | 24,364 | 37,159 | 1.525160072 | 0% | 0% | 0% |
+| ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
+
+**Validation Coverage:**
+
+- **18 converted queries** validated
+- **~30-50 dimension combinations** per query (sites × platforms × variants)
+- **3 core metrics** per combination: Users, Visits, Calculated Rate
+- **Total validation rows:** 500+ individual comparisons
+
+**Sample Validation Results (Query: Content Exposure):**
+
+| Site | Platform | Variant | Users | Visits | Visit_per_UV | Difference | Status |
+|------|----------|---------|-------|--------|--------------|------------|--------|
+| jobhk | android app | 0 | 16,063 | 23,557 | 1.4665 | 0% all metrics | ✅ Match |
+| jobhk | ios app | 0 | 24,364 | 37,159 | 1.5252 | 0% all metrics | ✅ Match |
+| jobth | android app | 0 | 45,308 | 62,602 | 1.3817 | 0% all metrics | ✅ Match |
+| jobid | ios app | 1 | 73,111 | 114,192 | 1.5619 | 0% all metrics | ✅ Match |
+| jobau | android app | 0 | 163,567 | 206,113 | 1.2601 | 0% all metrics | ✅ Match |
+| jobnz | ios app | 0 | 34,897 | 43,851 | 1.2566 | 0% all metrics | ✅ Match |
+
+**Validation Process:**
+
+1. **Export both query results** - Original (old table) and Converted (new table) to CSV
+2. **Import to validation spreadsheet** - Side-by-side comparison layout
+3. **Calculate differences** - Automated formulas for difference and % difference
+4. **Flag any variances** - Conditional formatting to highlight non-zero differences
+5. **Investigate discrepancies** - If any variance found, debug query logic
+6. **Document results** - Track validation status for each query
+
+**Validation Criteria:**
+- ✅ **Pass:** 0% variance across all metrics and dimension combinations
+- ⚠️ **Review:** Any variance > 0% requires investigation
+- ❌ **Fail:** Variance indicates conversion error - must fix before proceeding
+
+**Final Validation Results:**
+
+**All 18 converted queries achieved 100% exact match:**
+- ✅ User counts: 0% variance
+- ✅ Visit counts: 0% variance  
+- ✅ Calculated rates: 0% variance
+- ✅ All dimension combinations validated
+
+**No discrepancies found** - Schema mapping was accurate, logic preserved correctly.
+
+**Validation Duration:** ~1 week of systematic testing and documentation
 
 ### Example: Migration of Content Exposure Query
 
