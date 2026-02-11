@@ -1,5 +1,5 @@
 # Mini SQL Lab (Mock Data)
-
+**github folder:** https://github.com/safiyyahsy/sfyhportfolio/tree/main/mini-sql-lab
 This folder contains a small, public-safe SQL mini project to demonstrate my SQL skills without using any employer data or internal methodology.
 
 ## What’s inside
