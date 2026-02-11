@@ -889,15 +889,6 @@ For each chart/table in the original dashboard:
 - ✅ **Time series charts** - All metrics over time
 - ✅ **Breakdown tables** - By country, platform, content type
 
-**Validation Testing Scenarios:**
-
-Tested dashboard with different parameter combinations to ensure flexibility:
-
-1. **Different date ranges** - 1 week, 1 month, 3 months, custom ranges
-2. **Different platforms** - iOS only, Android only, both combined
-3. **Different markets** - Individual countries, regional groupings, all markets
-4. **Different experiment variants** - Control vs. treatment comparisons
-
 **Result:** All visualizations matched original dashboard exactly across all test scenarios.
 
 **Issues Found:** None - All calculated fields produced equivalent results to original separated queries.
@@ -920,11 +911,6 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 - ✅ **All visualizations validated** - 100% match to original dashboard
 - ✅ **Tested across multiple scenarios** - Different dates, platforms, markets, variants
 
-**User Experience Improvements:**
-- **Before:** Users needed to request SQL changes for different date ranges or filters
-- **After:** Users can dynamically change parameters without technical assistance
-- **Impact:** Self-service analytics enabled for product and business teams
-
 **Dashboard Performance:**
 - **Before (21 queries):** Days to load, frequent timeouts
 - **After (1 consolidated query + 2 converted queries + 3 original query):** **3-8 minutes** consistently
@@ -937,17 +923,14 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 
 **Final Dashboard Architecture:**
 
-
-Databricks Dashboard (Frontend)
-
+**Databricks Dashboard**
 • 4 Dynamic Parameters
 • 20+ Calculated Fields (Schema)
 • 15+ Visualizations
 
 ▼
 
-Consolidated Query (Backend)
-
+**Consolidated Query**
 • 1 main query (replaces 16)
 • 2 converted queries
 • 3 original queries
@@ -955,7 +938,7 @@ Consolidated Query (Backend)
 
 ▼
 
-Purpose-Built Analytical Table:
+**Purpose-Built Analytical Table:**
 analytics_events
 
 **Documentation Delivered:**
@@ -992,7 +975,7 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 ### Key Deliverables
 
 1. **Migrated analytical foundation** - 18 queries on purpose-built table
-2. **Consolidated query architecture** - Flag-based system replacing 16 queries
+2. **Consolidated query architecture**
 3. **Self-service dashboard** - 4 parameters + 20+ calculated fields
 4. **Comprehensive documentation** - Schema mapping, validation results, usage guides
 5. **Knowledge transfer** - Process documented for future optimization projects
@@ -1000,39 +983,30 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 **Stakeholder and Team Feedback:**
 - Engagement & Career Hub team: "Dashboard is finally usable for decision-making"
 - Business users: "Love that now it is usable"
+
 ---
 
 ## Skills Demonstrated
 
 **SQL & Data Engineering:**
-- Advanced SQL (CTEs, window functions, conditional aggregation, query optimization)
 - Data migration and schema mapping
-- ETL logic design and implementation
-- Data validation at scale (500+ comparisons)
-- Flag-based architecture for analytics
-
-**Dashboard & BI:**
-- Databricks dashboard development (parameters, calculated fields, visualizations)
-- Data modeling for dashboard optimization
-- Self-service analytics enablement
+- Data validation at scale
+- Flag-based architecture for analytics (learned through Supervisor)
 
 **Analytical & Problem-Solving:**
-- Root cause analysis (identified data architecture as core issue)
 - Pattern recognition (found consolidation opportunities)
 - Multi-phase project planning (migration → consolidation → optimization)
 - Systematic validation methodology
 
 **Documentation & Communication:**
 - Technical documentation (schema mapping, query logic, validation results)
-- Stakeholder communication (updates, demos, sign-offs)
-- Knowledge transfer (process guides for future projects)
 
 ---
 
 ## Business Impact
 
 **Performance Improvement:**
-- Dashboard load time: Days → 12 seconds (70%+ reduction)
+- Dashboard load time: Days → 3-8 minutes (70%+ reduction)
 - Database CPU usage: ~60% reduction
 - Eliminated resource contention for other Databricks users
 
@@ -1063,7 +1037,7 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 ## Tools & Technologies
 
 - **Databricks:** Notebook, dashboard development
-- **SQL:** Query development, optimization, CTEs, window functions
+- **SQL:** Query development, optimization, CTEs
 - **Excel:** Data validation, comparison analysis, automated calculations, documentation
 
 ---
