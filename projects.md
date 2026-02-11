@@ -10,13 +10,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Challenge:** Career Hub Experiment tracking dashboard took several days to load and consumed excessive Databricks resources, impacting other users. Root cause: inefficient data structure with 21 separate SQL queries hitting generic shared tables in production.
 
-**Two-Phase Solution:**
-
-**Phase 1 - Data Migration:** Migrated queries from oversized shared table (`shared_events`) to purpose-built analytical table, requiring schema mapping and data validation.
-
-**Phase 2 - Query Consolidation:** Consolidated 18 migrated queries into 6 optimized queries using CTEs and conditional aggregation.
-
-**Phase 3 - Dashboard Integration & Validation**
+**Solution:** Phase 1 migration + Phase 2 consolidation + Phase 3 dashboard rebuild/validation (new Databricks dashboard referencing archived original)
 
 **Impact:**
 - Reduced load time by **70%+** (days → 3-8 minutes)
@@ -24,9 +18,9 @@ subtitle: Data Analytics & Machine Learning Work
 - Eliminated resource contention affecting other Databricks users
 - Improved maintainability and created reusable analytical foundation
 
-**Skills:** SQL optimization, data migration, CTEs, query execution analysis, performance tuning, dimensional modeling, Databricks, Tableau, technical documentation
+**Skills:** SQL optimization, data migration, CTEs, performance tuning, dimensional modeling, Databricks dashboards, technical documentation
 
-**📄 [View detailed technical case study →](/career-hub-optimization.md)**
+**📄 [View detailed technical case study →](/career-hub-optimization)**
 
 ---
 
@@ -44,7 +38,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** Requirements gathering, data modeling, Tableau, stakeholder management
 
-**📄 [View detailed case study →](/skills-content-dashboard.md)**
+**📄 [View detailed case study →](/skills-content-dashboard)**
 
 ---
 
@@ -60,7 +54,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL (CTEs, conditional logic), metric definition, documentation
 
-**📄 [View detailed technical case study →](/user-segmentation-analysis.md)**
+**📄 [View detailed technical case study →](/user-segmentation-analysis)**
 
 ---
 ### 4. Technical Documentation & Data Governance
@@ -88,7 +82,7 @@ subtitle: Data Analytics & Machine Learning Work
 - Deployed **MobileNetV2 with Adam optimizer** achieving **98% accuracy**
 - Built Flask web application with HTML/CSS interface
 
-**GitHub:** [View Project Repository](https://github.com/safiyyahsy/homecheck) *(you'll add this link later)*
+**GitHub:** [View Project Repository](https://github.com/safiyyahsy/homecheck-ml)
 
 **Skills:** Python, TensorFlow/Keras, CNN, model evaluation, hyperparameter tuning, Flask, web deployment
 
@@ -108,11 +102,10 @@ subtitle: Data Analytics & Machine Learning Work
 
 ## SQL Code Samples
 
-Want to see my SQL skills in action? Check out my [SQL examples page](/sql-samples) with anonymized code demonstrating:
-- Complex CTEs and window functions
-- Query optimization techniques
-- User segmentation logic
-- Data validation queries
+Want to see my SQL skills in action? Check out my [SQL examples page](/sql-samples.md) with anonymized code demonstrating:
+- Query migration & schema mapping
+- Query consolidation (flag-based + UNION ALL)
+- User segmentation with CASE WHEN and multi-table joins
 
 ---
 
@@ -120,6 +113,6 @@ Want to see my SQL skills in action? Check out my [SQL examples page](/sql-sampl
 
 Interested in discussing these projects or potential opportunities?
 
-📧 [Email](mailto:safiyyahsy28@example.com)  
-💼 [LinkedIn](www.linkedin.com/in/nsin28)  
+📧 [Email](mailto:safiyyahsy28@gmail.com)  
+💼 [LinkedIn](https://www.linkedin.com/in/nsin28/)  
 📂 [Download Resume](NurSafiyyahInsyirahNordin.pdf)
