@@ -23,7 +23,7 @@ subtitle: Defining and quantifying student and graduate segments using multi-tab
 **Duration:** 3 days  
 **Requester:** Senior Partnerships Manager  
 **Purpose:** External partner reporting (technology skills provider partnership)  
-**Tools:** SQL, Databricks, Excel, Confluence
+**Tools:** SQL, Databricks, Excel
 
 ---
 
@@ -31,13 +31,16 @@ subtitle: Defining and quantifying student and graduate segments using multi-tab
 
 ### The Request
 
-A technology skills provider partner needed demographic data about SEEK's user base for their 2026 annual reporting:
+A technology skills provider partner needed demographic data about SEEK's user base for their 2025 annual reporting:
 
 **Primary Question:**  
 "What percentage of students and unemployed graduates in our user base engaged with [partner's] content in 2025?"
 
-**Alternative Metric:**  
-"What is the estimated total number of learners under age 21 on the SEEK platform?"
+**Additional Request (Not Feasible):**  
+"Estimate total learners under age 21 on the platform."
+
+**Constraint:**  
+Age is not available in the current analytics base (field removed), so I could not produce an age-based estimate. I communicated this limitation and proceeded with student/unemployed graduate segmentation using education and work-history proxies instead.
 
 **Why This Matters:**
 - Partner needed data to demonstrate reach and impact in their annual report
@@ -45,293 +48,90 @@ A technology skills provider partner needed demographic data about SEEK's user b
 - Data would inform future partnership decisions and content strategy
 - Time-sensitive: Needed for Q1 2026 reporting cycle
 
-**Challenge:**
-- No pre-defined "student" or "unemployed graduate" segments in existing dashboards
-- Required cross-referencing career history, education records, and content engagement data
-- Needed clear, defensible definitions for ambiguous user categories
-- Had to account for incomplete or missing profile data
+**Challenges:**
+- Age-based segmentation was not possible due to age field removal from analytics base
+- No pre-defined "student" / "unemployed graduate" segments available out-of-the-box
+- Required joining engagement + career history + education history to define segments
+- Needed defensible rules with NULL handling due to incomplete profiles
 
 ---
 
 ## Analytical Approach
 
-### Step 1: Clarify Requirements and Definitions
+### Step 1: Clarify definitions & scope
+Before writing SQL, I aligned the request into clear, measurable definitions:
+- What counts as **viewed content**
+- How to classify **Student**, **Unemployed Graduate**, **Other**
+- Time period: **2025**
+- Output grain: **Country × Month**
+- How to handle **incomplete profiles (NULLs)**
 
-Before writing any SQL, I created an analytical documentation framework to ensure clarity:
+### Step 2: Identify minimum data required
+Used the minimum set of tables needed to connect:
+- content engagement → who viewed partner content
+- career history → employment/workforce signals
+- education history → student/graduate signals
 
-**Key Questions Addressed:**
-1. How do we define "student" vs "graduate"?
-2. How do we determine "unemployed" status?
-3. What content engagement counts as "viewed"?
-4. How do we handle incomplete profile data?
-5. What time period and geographic scope?
+### Step 3: Implement conservative segmentation rules
+Implemented defensible rules using CASE WHEN with explicit NULL handling (detailed in SQL section).
 
-**Stakeholder Alignment:**
-- Documented proposed definitions in Confluence
-- Reviewed logic with partnerships team
-- Confirmed metrics aligned with partner's reporting needs
+### Step 4: Validate and sanity-check
+- Spot-checked sample profiles for logic correctness
+- Ensured segment counts reconcile (segment % sums to 100% per country/month)
+- Reviewed outliers (e.g., small markets with very low volumes)
 
-### Step 2: Data Source Identification
+### Step 5: Deliver results + documented caveats
+Delivered a country + monthly breakdown with clear assumptions and limitations for stakeholder reporting.
 
-Identified three key data sources needed:
-
-| Data Source | Purpose | Key Fields | Filtering Logic |
-|-------------|---------|------------|-----------------|
-| Content engagement table | Track who viewed partner content | `candidate_id`, `event_name`, `content_provider`, `date`, `country` | Filter for specific provider + video view events + 2025 |
-| Career history table | Determine employment status | `candidate_id`, `has_workhistory`, `is_new_to_workforce`, `current_company` | Check work experience flags |
-| Education history table | Determine student/graduate status | `candidate_id`, `is_course_completed`, `course_completed_year` | Check completion status and year |
-
-**Data Quality Considerations:**
-- Not all users have complete profiles
-- Education data may be outdated or missing
-- Work history can be ambiguous (part-time jobs for students)
-- Needed logic to handle NULL values and edge cases
-
-### Step 3: Define Segmentation Logic
-
-Created clear business rules for user categorization:
-
-**STUDENT Definition:**
-User is a STUDENT if:
-- Course completion status = 'N' (not completed) OR NULL
-- AND Expected completion year >= 2026 OR NULL
-- AND has_workhistory = FALSE
-
-**Rationale:** Currently enrolled in education, not yet graduated, no full-time work history
-
-**UNEMPLOYED GRADUATE Definition:**
-User is an UNEMPLOYED GRADUATE if:
-- Course completion status = 'Y' (completed) OR NULL
-- AND Completion year < 2026 OR NULL
-- AND has_workhistory = FALSE
-- AND is_new_to_workforce IN ('yes', 'undetermined')
-
-
-**Rationale:** Completed education, entering workforce, no current employment
-
-**OTHER Category:**
-- All users not matching above criteria (employed, unclear status, etc.)
-
-**Edge Case Handling:**
-- NULL education data: Included in analysis if work history suggests student/graduate status
-- Part-time work: Evaluated based on `is_new_to_workforce` flag
-- Unclear completion dates: Used conservative logic to avoid misclassification
-
-### Step 4: Build and Validate Query
-
-- Wrote SQL using CTEs for modularity and readability
-- Tested logic with sample candidate IDs
-- Validated segmentation against manual profile checks
-- Optimized for performance (appropriate indexes, efficient joins)
-
-### Step 5: Document and Deliver
-
-- Created methodology document explaining segmentation logic
-- Generated results broken down by country and month
-- Provided caveats and data quality notes
-- Enabled stakeholder to understand and explain the data
+---
 
 ---
 
 ## Data Source Identification
 
-### Data Discovery Process
+Three tables were required to link content views to education and workforce signals:
 
-**Challenge:** Three separate tables needed to be joined, each with different granularity and data quality characteristics.
+### 1) Content Engagement (Views)
+**Purpose:** Identify users who viewed partner content in 2025  
+**Key fields:** `candidate_id`, `date`, `country`, `event_name`, `content_provider_meta`  
+**Notes:** Used as the anchor dataset (all viewers retained)
 
-**Table 1: Content Engagement Data**
+### 2) Candidate Career History
+**Purpose:** Determine workforce/employment signal  
+**Key fields:** `candidate_id`, `has_workhistory`, `is_new_to_workforce`  
+**Notes:** Profile completeness varies; used conservative rules
 
-**Source:** `dataplatform.content_analytics.content_engagement_events` (anonymized)
+### 3) Candidate Education History
+**Purpose:** Determine student vs graduate signal  
+**Key fields:** `candidate_id`, `is_course_completed`, `course_completed_year`  
+**Notes:** Users may have multiple records; NULLs handled conservatively
 
-**Purpose:** Identify which users viewed partner content
-
-**Key Fields:**
-- `candidate_id` - User identifier
-- `event_name` - Type of engagement event
-- `content_provider_meta` - Content provider/partner name
-- `date` - Engagement date
-- `country` - User's market/country
-
-**Filtering Applied:**
-```sql
-WHERE 
-    LOWER(content_provider_meta) LIKE '%partner_name%'
-    AND event_name = 'video_viewed'
-    AND YEAR(date) = '2025'
-```
-**Data Quality:** High - event tracking reliable for app-based engagement
+### Join Strategy
+Used **LEFT JOINs** to keep all content viewers even if career/education data is missing.
 
 ---
-
-**Table 2: Career History Data**
-
-**Source:** `dataplatform.dimensions.dim_candidate` (anonymized)
-
-**Purpose:** Determine employment status and work history
-
-**Key Fields:**
-- `candidate_id` - User identifier (join key)
-- `is_new_to_workforce` - Flag indicating new job seeker
-- `has_workhistory` - Boolean indicating any work experience
-- `has_2_or_more_workhistory` - Flag for multiple jobs
-- `current_company_name` - Current employer (if any)
-- `profile_title` - Job title
-
-**Data Quality Considerations:**
-- **Missing data:** Not all users complete work history section
-- **Self-reported:** Users may not update when employment status changes
-- **Part-time work ambiguity:** Students with part-time jobs might have `has_workhistory = TRUE`
-
-**Solution:** Combined with `is_new_to_workforce` flag to better identify true employment status
-
----
-
-**Table 3: Education History Data**
-
-**Source:** `dataplatform.candidate_mgmt.candidate_education` (anonymized)
-
-**Purpose:** Determine student vs. graduate status
-
-**Key Fields:**
-- `candidate_id` - User identifier (join key)
-- `is_course_completed` - 'Y', 'N', or NULL
-- `course_completed_year` - Year of graduation
-- `course_completed_month` - Month of graduation
-- `course_level` - Degree type (Bachelor, Certificate, etc.)
-- `institution_name` - University/school name
-- `course_name` - Degree program
-
-**Data Quality Considerations:**
-- **Multiple education records:** Users may have multiple degrees
-- **Incomplete data:** Not all users fill education section
-- **Outdated information:** Users may not update after graduation
-- **Ambiguous completion dates:** Some only provide year, not month
-
-**Solution:** 
-- Filtered to `is_course_completed IN ('Y', 'N')` to exclude completely blank records
-- Used completion year >= 2026 as proxy for "current student"
-- Used completion year < 2026 as proxy for "recent graduate"
-
----
-
-### Table Join Strategy
-
-**Join Type:** LEFT JOIN (preserve all content viewers even if profile incomplete)
-
-**Join Logic:**
-content_viewers
-LEFT JOIN career_history (may be incomplete)
-LEFT JOIN education_history (may be incomplete)
-
-**Why LEFT JOIN:**
-- Ensures all users who viewed content are included in analysis
-- Missing career/education data categorized as "Other" rather than excluded
-- Provides complete picture of content engagement
-
-**Cardinality Handling:**
-- Education table: One-to-many relationship (multiple degrees possible)
-- Used most recent education record based on `course_completed_year`
-- Documented this assumption in methodology notes
 
 ---
 
 ## Metric Definitions
 
-### User Type Segmentation Logic
+### Viewed Content (2025)
+A user is counted as a viewer if they triggered the relevant view event for content where the provider metadata matches the partner name.
 
-Created structured CASE WHEN logic to categorize users into three segments:
+### User Segments (Conservative Rules)
+- **Student:** course not completed (or missing) AND expected completion year ≥ 2026 (or missing) AND no work history  
+- **Unemployed Graduate:** course completed (or missing) AND completion year < 2026 (or missing) AND no work history AND new-to-workforce flag in ('yes','undetermined')  
+- **Other:** everyone else
 
-#### **Segment 1: STUDENT**
+### Output Grain
+- **Geography:** Country  
+- **Time:** Month (within 2025)  
+- **Grain:** Country × Month
 
-**Definition:** Currently enrolled in education program, not yet in workforce
-
-**SQL Logic:**
-```sql
-CASE 
-    WHEN (is_course_completed = 'N' OR is_course_completed IS NULL)
-        AND (course_completed_year >= 2026 OR course_completed_year IS NULL)
-        AND has_workhistory = FALSE
-    THEN 'Student'
-```
-
-**Business Rationale:**
-- is_course_completed = 'N' → Currently studying
-- course_completed_year >= 2026 → Expected graduation in future
-- has_workhistory = FALSE → No full-time employment
-- NULL handling: Conservative approach treats missing data as potential student
-
-**Edge Cases Considered:**
-- Students with part-time jobs: Rely on has_workhistory = FALSE to filter them
-- Gap year students: May show as "Other" if profile unclear
-- Recent enrollees: NULL completion year treated as current student
-
-#### **Segment 2: UNEMPLOYED GRADUATE**
-
-**Definition:** Completed education, entering workforce, currently unemployed
-
-**SQL Logic:**
-```sql
-WHEN (is_course_completed = 'Y' OR is_course_completed IS NULL)
-    AND (course_completed_year < 2026 OR course_completed_year IS NULL)
-    AND has_workhistory = FALSE
-    AND is_new_to_workforce IN ('yes', 'undetermined')
-THEN 'Unemployed Graduate'
-```
-
-**Business Rationale:**
-- is_course_completed = 'Y' → Finished education
-- course_completed_year < 2026 → Already graduated
-- has_workhistory = FALSE → Not currently employed
-- is_new_to_workforce IN ('yes', 'undetermined') → Actively seeking first job
-
-**Edge Cases Considered:**
-- Career changers: Excluded by is_new_to_workforce logic
-- Employed graduates: Filtered out by has_workhistory flag
-- Long-term unemployed: Included if still marked as new to workforce
-
-#### **Segment 3: OTHER**
-
-**Definition:** All users not matching Student or Unemployed Graduate criteria
-
-**SQL Logic:**
-```sql
-ELSE 'Other'
-```
-**Includes:**
-- Employed users (students with jobs, working professionals)
-- Career changers
-- Users with incomplete profile data that doesn't clearly indicate student/graduate status
-- Users who don't fit clean definitions
-
-**Rationale:** Conservative approach - only classify as Student/Unemployed Graduate when profile data clearly su
-
-#### **Engagement Metrics**
-**Content Views:**
-- Definition: Distinct users who triggered video_viewed event for partner content
-- Measurement: COUNT(DISTINCT candidate_id)
-- Filter: event_name = 'video_viewed' AND content_provider_meta contains partner name
-
-**Segmentation Percentages:**
-- Student %: (Student count / Total content viewers) × 100
-- Unemployed Graduate %: (Unemployed Graduate count / Total content viewers) × 100
-- Other %: (Other count / Total content viewers) × 100
-
-**Validation:** Sum of percentages = 100% for each country/month combination
-
-### Dimensional Breakdown
-
-**Geography:** Country-level analysis (AU, NZ, SG, MY, PH, ID, HK, TH)
-
-**Temporal:** Monthly breakdown (January - December 2025)
-
-**Granularity:** Country × Month × User Type
-
-**Sample Output Structure:**
-
-| Country | Month | Total Users | Students | Unemployed Graduates | Other | % Students | % Unemployed Grads | % Other |
-|---------|-------|-------------|----------|----------------------|-------|------------|-------------------|---------|
-| AU | Jan 2025 | 20,560 | 1,234 | 567 | 18,759 | 6.0% | 2.8% | 91.2% |
-| SG | Jan 2025 | 5,234 | 892 | 234 | 4,108 | 17.0% | 4.5% | 78.5% |
+### Outputs Produced
+- Total unique viewers
+- Viewer counts by segment
+- Segment percentages per country/month
 
 ---
 
@@ -512,37 +312,11 @@ COUNT(DISTINCT CASE WHEN user_type = 'Student' THEN candidate_id END)
 - Allows analysis of profile completion rates
 - Handles one-to-many relationships (multiple education records)
 
-**5. Percentage Calculations with Rounding**
-```sql
-ROUND(100.0 * numerator / denominator, 2)
-```
-- Explicit decimal conversion (100.0) to avoid integer division
-- Consistent 2-decimal precision for reporting
-- NULLIF not needed here due to WHERE clause ensuring denominator > 0
-
-**6. Performance Optimization**
-- Filtered large tables early in CTEs (date, event_name)
-- Used indexed columns in WHERE clauses (date, candidate_id)
-- Minimized data volume before joins
-
 #### Query Validation
-**Validation Steps:**
-
-**1. Sample Candidate Checks:**
-- Manually reviewed 10-15 candidate profiles
-- Verified segmentation logic matched manual classification
-- Checked edge cases (missing data, ambiguous status)
-**2. Percentage Sum Validation:**
-- Verified pct_students + pct_unemployed_graduates + pct_other = 100% for all rows
-- Ensured no users lost in segmentation logic
-**3. Country-Level Sanity Checks:**
-- Compared results to known market demographics
-- Flagged any unexpected patterns for investigation
-- Validated counts against total platform user base
-**4. Temporal Consistency:**
-- Checked for reasonable month-to-month variance
-- Investigated any sudden spikes or drops
-
+- **Spot checks:** manually reviewed 10–15 candidate profiles to confirm segmentation logic (including NULL/edge cases)
+- **Reconciliation:** verified segment counts reconcile and percentages sum to 100% for each country × month row
+- **Sanity checks:** reviewed outliers and month-to-month trends to confirm results were plausible
+- 
 **Validation Result:** Logic confirmed accurate, no data quality issues requiring query modification
 
 ---
@@ -558,17 +332,18 @@ ROUND(100.0 * numerator / denominator, 2)
 ### Aggregate Results by Market
 
 **Sample Results (Anonymized Numbers):**
+*Note: Results below are anonymized for confidentiality (values scaled/modified while preserving relative patterns across markets).*
 
 | Country | Total Content Viewers | Students | Unemployed Graduates | Other | % Students | % Unemployed Grads | % Other |
 |---------|----------------------|----------|----------------------|-------|------------|--------------------|---------|
-| AU | 82,770 | 4,180 | 3,320 | 75,270 | 5.05% | 4.01% | 90.94% |
-| SG | 93,290 | 13,180 | 1,870 | 78,240 | 14.13% | 2.00% | 83.87% |
-| MY | 50,240 | 7,710 | 4,410 | 38,120 | 15.35% | 8.78% | 75.87% |
-| PH | 64,950 | 9,940 | 2,910 | 52,100 | 15.30% | 4.48% | 80.22% |
-| ID | 76,980 | 16,890 | 1,950 | 58,140 | 21.94% | 2.53% | 75.53% |
-| NZ | 8,130 | 180 | 90 | 7,860 | 2.21% | 1.11% | 96.68% |
-| HK | 380 | 20 | 0 | 360 | 5.26% | 0.00% | 94.74% |
-| TH | 5,490 | 450 | 30 | 5,010 | 8.20% | 0.55% | 91.25% |
+| AU | 82.5k | 4.8k | 3.5k | 70k | 5.82% | 4.24% | 89.94% |
+| SG | 90k | 13k | 1.5k | 50k | 14.44% | 1.67% | 83.89% |
+| MY | 50k | 7.1k | 4k | 45k | 14.20% | 8.00% | 77.80% |
+| PH | 63k | 9k | 2.5k | 42k | 14.29% | 3.97% | 81.76% |
+| ID | 75k | 16k | 1.2k | 58k | 21.33% | 1.60% | 77.07% |
+| NZ | 8k | 150 | 90 | 7k | 1.88% | 1.13% | 97.00% |
+| HK | 190 | 10 | 0 | 300 | 5.26% | 0.00% | 94.74% |
+| TH | 5k | 150 | 30 | 5k | 3.00% | 0.60% | 96.40% |
 
 **Key Insights:**
 
@@ -588,37 +363,10 @@ ROUND(100.0 * numerator / denominator, 2)
 - **Mature professionals dominant:** 75-97% of viewers categorized as "Other" across all markets
 
 **4. Temporal Trends (Monthly Analysis)**
-
 Based on monthly breakdown:
 - **Peak student engagement:** September-November (university semester periods)
 - **Graduate engagement:** Relatively stable year-round
 - **Seasonal patterns:** Aligned with academic calendars in respective markets
-
----
-
-### Validation & Quality Checks
-
-**Cross-Validation Performed:**
-
-1. **Segment Logic Validation:**
-   - Manually reviewed 20 sample profiles per segment
-   - Confirmed segmentation matched manual classification
-   - Zero misclassifications found in sample
-
-2. **Percentage Sum Checks:**
-   - All country/month combinations summed to 100%
-   - No data loss in segmentation logic
-
-3. **Outlier Investigation:**
-   - Investigated Hong Kong's 0% unemployed graduate rate
-   - Confirmed due to small sample size (380 total viewers)
-   - Documented as data limitation, not analysis error
-
-4. **Temporal Consistency:**
-   - Month-to-month variance within expected ranges
-   - No unexplained spikes or drops
-
-**Result:** High confidence in analysis accuracy and methodology
 
 ---
 
@@ -643,7 +391,7 @@ Based on monthly breakdown:
 - Knowledge base article creation
 
 **Tools:**
-- SQL, Databricks, Excel, Confluence
+- SQL, Databricks, Excel
 
 ---
 
