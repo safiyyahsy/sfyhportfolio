@@ -4,8 +4,6 @@ title: SQL Code Samples
 subtitle: Real-world SQL techniques from production analytics work
 ---
 
----
-
 ## Data dictionary (mock)
 
 These fields are intentionally generic and **not tied to any employer implementation**.
@@ -24,7 +22,6 @@ This mini lab is a personal demo using mock data and generic SQL patterns.
 
 ## Snippet 1 (Segmentation)
 
-```markdown
 ## 1) segmentation with case when
 
 **context:** classify users into simple segments using mock profile attributes.  
@@ -51,7 +48,6 @@ order by users desc;
 
 ## Snippet 2 (Window function / cohort)
 
-```markdown
 ## 2) cohorting (first activity month)
 
 **context:** assign users to cohorts based on first activity date.  
@@ -83,7 +79,6 @@ order by cohort_month;
 
 ## Snippet 3 (Data quality checks)
 
-```markdown
 ## 3) data quality validation checks
 
 **context:** quick automated checks for missing values and duplicates.  
@@ -108,7 +103,6 @@ from users;
 
 ## Snippet 4 (Join + conditional aggregation)
 
-```markdown
 ## 4) join + conditional aggregation
 
 **context:** summarize engagement by content provider.  
@@ -129,7 +123,7 @@ order by unique_viewers desc;
 ---
 
 ## Snippet 5 (One multi-grain union all example)
-```markdown
+
 ## 5) multi-grain output via union all (daily + weekly)
 
 **context:** return daily and weekly aggregates in one result set using a grain label.  
