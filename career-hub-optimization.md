@@ -943,7 +943,7 @@ Databricks Dashboard (Frontend)
 • 4 Dynamic Parameters
 • 20+ Calculated Fields (Schema)
 • 15+ Visualizations
-│
+
 ▼
 
 Consolidated Query (Backend)
@@ -951,7 +951,7 @@ Consolidated Query (Backend)
 • 2 converted queries
 • 3 original queries
 • Total: 6 queries (was 21 originally)
-│
+
 ▼
 
 Purpose-Built Analytical Table:
