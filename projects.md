@@ -10,7 +10,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Challenge:** Career Hub Experiment tracking dashboard took several days to load and consumed excessive Databricks resources, impacting other users. Root cause: inefficient data structure with 21 separate SQL queries hitting generic shared tables in production.
 
-**Solution:** Phase 1 migration + Phase 2 consolidation + Phase 3 dashboard rebuild/validation (new Databricks dashboard referencing archived original)
+**Solution:** Migrated to improved analytical structure → consolidated query set → rebuilt & validated Databricks dashboard (public details summarized due to confidentiality)
 
 **Impact:**
 - Reduced load time by **70%+** (days → 3-8 minutes)
