@@ -62,9 +62,8 @@ The Career Hub Experiment dashboard was critical for tracking user engagement ex
 3. **No optimization:** Each query ran independently without sharing intermediate results
 
 **Business Impact:**
-- Stakeholders couldn't access experiment results in time to make decisions
+- Team couldn't access experiment results in time to make decisions
 - Blocked other analytics work due to resource contention
-- Risk of missing experiment insights during critical testing periods
 
 ---
 
@@ -103,7 +102,6 @@ Move queries from generic `shared_events` table to purpose-built `analytics_even
 ### Migration Process
 
 **Step 1: Analyze Current Queries**
-- Documented all 21 queries and their purpose
 - Identified common patterns and filtering logic
 - Listed all columns/fields used
 
@@ -165,7 +163,7 @@ Created comprehensive mapping document for field conversion:
 
 - Used Databricks notebook with clear section headers for each query
 - Named queries descriptively: `Query_01_Content_Exposure`, `Query_02_Content_Engagement`, etc.
-- Commented each query with: Original purpose, conversion date, validation status
+- Commented each query with validation status
 - Maintained running list of successfully converted vs. blocked queries
 
 **Conversion Blockers:**
@@ -183,7 +181,7 @@ Created comprehensive mapping document for field conversion:
 **Migration Success Rate:** 18 out of 21 queries successfully migrated (86%)
 
 **Important note:** While not ideal to have mixed data sources, this was acceptable because:
-- Their resource impact was minimal compared to the total 21 original queries
+- The resource impact was minimal compared to the total 21 original queries
 - Full migration would have required additional data engineering work beyond project scope
 
 **Step 4: Validation**
@@ -196,9 +194,9 @@ Created comprehensive validation spreadsheet comparing original vs. converted qu
 
 **Validation Structure:**
 
-For each converted query, compared results across all dimension combinations:
-- **Dimensions validated:** Site (market), Platform (iOS/Android), Experiment Variant (control/treatment)
-- **Metrics validated:** Users, Visits, Visit_per_UV (visits per unique visitor)
+For each converted query, compared results based on its specific dimensions and metrics:
+- **Dimensions validated:** Varied by query (e.g., Site + Platform + Variant for Experiment Pool query; Site + Platform + Date for other queries)
+- **Metrics validated:** Query-specific metrics (Users, Visits, Impressions, etc. depending on query purpose)
 - **Calculation:** Difference = Converted - Original, % Difference = (Difference / Original) × 100
 
 **Validation Spreadsheet Format:**
@@ -209,23 +207,14 @@ For each converted query, compared results across all dimension combinations:
 | Market A | ios | 0 | 24,364 | 37,159 | 1.525160072 | 24,364 | 37,159 | 1.525160072 | 0% | 0% | 0% |
 | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... | ... |
 
+**Note: This example shows the Experiment Pool query validation. Other queries had different dimension combinations (e.g., Date + Platform + Country) depending on their specific purpose and GROUP BY logic.**
+
 **Validation Coverage:**
 
 - **18 converted queries** validated
 - **~30-50 dimension combinations** per query (sites × platforms × variants)
 - **3 core metrics** per combination: Users, Visits, Calculated Rate
 - **Total validation rows:** 500+ individual comparisons
-
-**Sample Validation Results (Query: Content Exposure):**
-
-| Site | Platform | Variant | Users | Visits | Visit_per_UV | Difference | Status |
-|------|----------|---------|-------|--------|--------------|------------|--------|
-| jobhk | android app | 0 | 16,063 | 23,557 | 1.4665 | 0% all metrics | ✅ Match |
-| jobhk | ios app | 0 | 24,364 | 37,159 | 1.5252 | 0% all metrics | ✅ Match |
-| jobth | android app | 0 | 45,308 | 62,602 | 1.3817 | 0% all metrics | ✅ Match |
-| jobid | ios app | 1 | 73,111 | 114,192 | 1.5619 | 0% all metrics | ✅ Match |
-| jobau | android app | 0 | 163,567 | 206,113 | 1.2601 | 0% all metrics | ✅ Match |
-| jobnz | ios app | 0 | 34,897 | 43,851 | 1.2566 | 0% all metrics | ✅ Match |
 
 **Validation Process:**
 
@@ -244,10 +233,6 @@ For each converted query, compared results across all dimension combinations:
 **Final Validation Results:**
 
 **All 18 converted queries achieved 100% exact match:**
-- ✅ User counts: 0% variance
-- ✅ Visit counts: 0% variance  
-- ✅ Calculated rates: 0% variance
-- ✅ All dimension combinations validated
 
 **No discrepancies found** - Schema mapping was accurate, logic preserved correctly.
 
@@ -342,15 +327,7 @@ ORDER BY 1,2,3
 | Session ID | session_id | vid | Colunm renamed |
 | Event name | source_event_name | event_name | Colunm renamed |
 | Source filter | system_source field | (removed) | Not available in new table |
-| Validation flag | record_is_valid = 'true' | (removed) | New table uses different quality approach |
-
-**Conversion Challenges:**
-
-1. Multiple column renames: 5 columns required mapping to new names
-2. Case sensitivity: brand_country required LOWER() for consistent filtering
-3. Value format changes: Site identifiers changed from full names to abbreviated codes
-4. Missing validation fields: system_source and record_is_valid not available in new table - had to verify data quality was maintained without them
-5. Simplified WHERE clause: New table structure eliminated need for some filters
+| Validation flag | record_is_valid = 'true' | (removed) | Not available in new table  |
 
 Result: Successfully migrated with 100% data accuracy (validated via spreadsheet comparison across all site/platform/variant combinations)
 
@@ -369,7 +346,6 @@ Even after migration to the purpose-built table, performance was still poor:
 - Scanning the entire `analytics_events` table independently
 - Applying the same date/platform/country/experiment filters
 - Running separately = **18 separate table scans**
-- Combined load time: Still several days
 
 **Root cause:** Queries weren't sharing any work - every query re-read the same filtered data.
 
@@ -402,7 +378,16 @@ Queries could be reorganized into:
 - **Multiple metric CTEs** calculating different metrics from the base
 - **1 final SELECT** joining all metrics together
 
-**Target:** Consolidate 16 of the 18 migrated queries into 1 main query, leaving 5 specialized queries separate = **6 total queries**
+**Initial Target:** Consolidate all 18 migrated queries into single query
+
+**Actual Result:** 
+- 16 queries successfully consolidated into 1 main query
+- 2 queries could not be consolidated due to incompatible aggregation levels
+- 5 supporting queries remained separate (specialized use cases)
+- **Final: 6 total queries** (1 main consolidated + 2 unconsolidated + 3 other supporting)
+
+**Why 2 Couldn't Be Consolidated:**
+Aggregation grain mismatch - these queries required different GROUP BY dimensions that couldn't be unified with the flag-based approach without creating incorrect results.
 
 ### Consolidation Strategy
 
@@ -455,7 +440,7 @@ ORDER BY event_date_utc, platform, variant;
 ```
 ### Example: After Consolidation
 
-**Consolidated Main Query: Replaces 16 of 18 queries with single query using flags**
+**Consolidated Main Query: Replaces 16 of 18 queries with single query**
 
 ```sql
 -- CONSOLIDATED QUERY: Replaces 16 separate queries with flag-based approach
@@ -705,7 +690,7 @@ SELECT *,
 FROM main_query;
 ```
 
-**How this consolidation works:
+**How this consolidation works:**
 
 1. Single table run
    - Before: 16 queries x 1 run each = 16 runs
@@ -736,18 +721,23 @@ FROM main_query;
    - All metrics stay in sync (same filtering applied)
 ---
 
-## Phase 3: Dashboard Integration & Validation
+## Phase 3: Dashboard Recreation & Validation
 
 ### Goal
-Integrate the consolidated query into the Databricks dashboard and ensure all visualizations match the original dashboard exactly.
+Recreate the Career Hub Experiment dashboard using the consolidated query architecture, ensuring visualizations match the archived original dashboard exactly.
 
 ### Context
-After consolidation was complete, the query needed to be:
-1. Made user-friendly with dynamic parameters
-2. Connected to dashboard with calculated fields
-3. Validated to ensure visualizations matched the original dashboard
+After query consolidation was complete, the dashboard needed to be rebuilt:
+- **Original dashboard:** Used 21 separate queries, now archived
+- **New dashboard:** Built from scratch using consolidated query + calculated fields
+- **Reference:** Used archived dashboard as specification for visualizations
+- **Challenge:** Ensure new dashboard produces identical results to original
 
-This phase ensured the optimized backend (consolidated query) produced identical frontend results (dashboard metrics and charts) as the original 18-query version.
+This phase involved:
+2. Adding dynamic parameters for self-service filtering
+3. Creating calculated fields in dashboard schema to compute metrics
+4. Recreating all visualizations matching the original dashboard structure
+5. Validating outputs match archived dashboard results exactly
 
 ### Timeline
 ~2-3 weeks of dashboard integration, calculation setup, and comprehensive validation
@@ -846,7 +836,7 @@ AND platform IN ...
 
 ### Step 3: Dashboard Visualization Validation
 
-**Challenge:** Ensure the new consolidated query + calculated fields produces identical dashboard outputs as the original 18-query dashboard.
+**Challenge:** Ensure the new consolidated query + calculated fields produces identical dashboard outputs as the original 21-query dashboard.
 
 **Validation Approach:**
 
@@ -883,7 +873,7 @@ Manually added calculated field metrics to dashboard table visualization, then v
 
 For each chart/table in the original dashboard:
 
-1. **Identified the data source** - Which of the 18 original queries powered this visual?
+1. **Identified the data source** - Which of the 21 original queries powered this visual?
 2. **Located equivalent calculated field** - Which flag-based calculation replaces it?
 3. **Added visualization to new dashboard** - Using consolidated query + calculated field
 4. **Compared outputs side-by-side** - Original dashboard vs. new dashboard
@@ -948,29 +938,23 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 
 **Final Dashboard Architecture:**
 
-┌─────────────────────────────────┐
+
 │ Databricks Dashboard (Frontend) │
-├─────────────────────────────────┤
 │ • 4 Dynamic Parameters │
 │ • 20+ Calculated Fields (Schema) │
 │ • 15+ Visualizations │
-└──────────────┬──────────────────┘
 │
 ▼
-┌─────────────────────────────────┐
+
 │ Consolidated Query (Backend) │
-├─────────────────────────────────┤
 │ • 1 main query (replaces 16) │
 │ • 2 converted queries │
 | • 3 original queries |
 │ • Total: 6 queries (was 21 originally) │
-└──────────────┬──────────────────┘
 │
 ▼
-┌─────────────────────────────────┐
 │ Purpose-Built Analytical Table │
 │ analytics_events │
-└──────────────────────────-──────┘
 
 **Documentation Delivered:**
 - Calculated field definitions and formulas
@@ -1014,347 +998,72 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 **Stakeholder and Team Feedback:**
 - Engagement & Career Hub team: "Dashboard is finally usable for decision-making"
 - Business users: "Love that now it is usable"
-
----
-
-## Technical Challenges & Solutions
-
-### Challenge 1: Missing Data Fields Blocking Migration
-
-**Problem:** 
-- 3 out of 21 queries relied on fields that didn't exist in the new analytical table
-- Fields like `system_source`, `record_is_valid`, and vendor-specific properties were not migrated
-- These queries were critical for certain analyses and couldn't simply be removed
-
-**Solution:** 
-- Analyzed which queries absolutely required the missing fields
-- Made pragmatic decision: Keep those 3 queries running on old table (`shared_events`)
-- Migrated the other 18 queries to new table for performance gains
-- Documented the hybrid approach and fields that prevented full migration
-- Result: 86% migration success rate while maintaining all required functionality
-
----
-
-### Challenge 2: Schema Mapping Complexity
-
-**Problem:** 
-- 27+ field mappings required between old and new tables
-- Nested properties (`raw_properties.xxx`) → flat columns
-- Inconsistent case sensitivity across tables
-- Some fields completely unavailable in new table
-
-**Solution:**
-- Created comprehensive mapping document with all field conversions
-- Used `LOWER()` functions for case consistency
-- Identified 3 queries that couldn't migrate due to missing fields
-- Kept those 3 queries on old table as acceptable compromise
-
----
-
-### Challenge 3: Validation at Scale
-
-**Problem:**
-- Needed to validate 18 converted queries across multiple dimensions
-- Each query had 30-50 combinations (site × platform × variant)
-- Manual comparison would be error-prone and time-consuming
-
-**Solution:**
-- Built systematic validation spreadsheet with automated difference calculations
-- Validated 500+ individual metric comparisons
-- Formula-driven approach: `% Difference = (New - Old) / Old × 100`
-- Achieved 100% accuracy match across all validations
-
----
-
-### Challenge 4: Consolidation Without Breaking Logic
-
-**Problem:**
-- 18 queries had different WHERE clauses filtering on different events
-- How to combine without losing metric specificity?
-- Traditional JOIN approach would be complex and potentially slow
-
-**Solution:**
-- Flag-based architecture: Single query with CASE WHEN flags for each metric
-- Flags act as "virtual WHERE clauses" for dashboard calculations
-- Example: `CASE WHEN event_name = 'content_viewed' THEN 1 END AS flag_impression`
-- Dashboard calculates: `COUNT(DISTINCT CASE WHEN flag_impression = 1 THEN uid END)`
-
----
-
-### Challenge 5: Dashboard Visualization Equivalence
-
-**Problem:**
-- Consolidated query structure completely different from original 18 queries
-- How to prove visualizations show identical results?
-- Direct query comparison not possible due to different output formats
-
-**Solution:**
-- Two-stage validation:
-  1. Query-level: Validated calculated fields against original query outputs
-  2. Visual-level: Side-by-side comparison of dashboard charts with original
-- Tested with multiple parameter combinations
-- Documented equivalence for stakeholder confidence
-
----
-
-### Challenge 6: Performance Testing Without Production Impact
-
-**Problem:**
-- Couldn't test with full production load without affecting other users
-- Needed to validate performance improvements safely
-
-**Solution:**
-- Tested with smaller date ranges initially
-- Ran during off-peak hours for full validation
-- Gradual rollout approach: validated 1 query → 5 queries → full dashboard
-- Monitored Databricks resource usage throughout
-
 ---
 
 ## Skills Demonstrated
 
-### Technical Skills
+**SQL & Data Engineering:**
+- Advanced SQL (CTEs, window functions, conditional aggregation, query optimization)
+- Data migration and schema mapping
+- ETL logic design and implementation
+- Data validation at scale (500+ comparisons)
+- Flag-based architecture for analytics
 
-**SQL & Query Optimization:**
-- Advanced SQL: CTEs, window functions, conditional aggregation, CASE WHEN logic
-- Query performance tuning and execution plan analysis
-- Flag-based architecture design for analytical flexibility
-- Complex WHERE clause consolidation
-- NULL handling and data type conversions
-
-**Data Engineering:**
-- Schema mapping and data migration between tables
-- ETL logic design (extract from old table, transform structure, load to new table)
-- Data validation methodology at scale
-- Dimensional modeling concepts (purpose-built analytical tables)
-- Data quality checks and integrity validation
-
-**Platform & Tools:**
-- Databricks: Query development, notebooks, dashboard creation
-- SQL: Production-level query writing and optimization
-- Excel: Validation spreadsheets, automated difference calculations
-
-**Dashboard Development:**
-- Databricks dashboard parameter implementation
-- Calculated field creation in dashboard schema
-- Visualization design and validation
+**Dashboard & BI:**
+- Databricks dashboard development (parameters, calculated fields, visualizations)
+- Data modeling for dashboard optimization
 - Self-service analytics enablement
 
-### Analytical Skills
+**Analytical & Problem-Solving:**
+- Root cause analysis (identified data architecture as core issue)
+- Pattern recognition (found consolidation opportunities)
+- Multi-phase project planning (migration → consolidation → optimization)
+- Systematic validation methodology
 
-**Problem Solving:**
-- Root cause analysis (identified inefficient data source as core issue)
-- Pattern recognition (found consolidation opportunities across 18 queries)
-- Multi-phase solution design (migration first, then optimization)
-- Trade-off evaluation (3 queries kept on old table vs. full migration)
-
-**Data Validation:**
-- Systematic validation methodology design
-- Statistical comparison across 500+ metric combinations
-- Edge case identification and testing
-- Accuracy verification at multiple levels (query, calculation, visualization)
-
-**Business Analysis:**
-- Requirements gathering from stakeholders
-- Impact assessment (performance, usability, maintenance)
-- Risk mitigation (gradual rollout, comprehensive testing)
-- Stakeholder communication and sign-off management
-
-### Project Management Skills
-
-**Planning & Execution:**
-- Three-phase project structure with clear goals
-- Timeline management (~3 months total)
-- Dependency management (Phase 2 required Phase 1 completion)
-- Scope management (identified what could/couldn't be migrated)
-
-**Documentation:**
+**Documentation & Communication:**
 - Technical documentation (schema mapping, query logic, validation results)
-- Process documentation (migration steps, consolidation approach)
-- User guides (parameter usage, dashboard functionality)
-- Knowledge transfer materials for team
-
-**Stakeholder Management:**
-- Regular updates to product and data teams
-- Validation review sessions
-- Dashboard demonstrations
-- Sign-off procurement at each phase
-
-### Soft Skills
-
-**Attention to Detail:**
-- Zero variance achieved in validation (100% accuracy)
-- Systematic approach to complex migration
-- Comprehensive testing across scenarios
-
-**Communication:**
-- Technical documentation for data team
-- User-friendly guides for business stakeholders
-- Clear explanation of trade-offs and limitations
-
-**Initiative:**
-- Identified consolidation opportunity beyond migration scope
-- Proposed flag-based architecture for flexibility
-- Suggested parameterization for self-service analytics (with supervisor guidance)
+- Stakeholder communication (updates, demos, sign-offs)
+- Knowledge transfer (process guides for future projects)
 
 ---
 
 ## Business Impact
 
-### Immediate Impact
+**Performance Improvement:**
+- Dashboard load time: Days → 12 seconds (70%+ reduction)
+- Database CPU usage: ~60% reduction
+- Eliminated resource contention for other Databricks users
 
-**Dashboard Usability Restored:**
-- Dashboard went from unusable (days to load) to real-time (12 seconds)
-- Stakeholders could finally access experiment results when needed
-- Decision-making no longer blocked by technical limitations
-
-**Resource Contention Eliminated:**
-- Reduced database CPU usage by ~60%
-- Other Databricks users no longer impacted by dashboard queries
-- Analytics team could run other analyses without slowdowns
-
-**Self-Service Analytics Enabled:**
-- Product teams can now filter by date/platform/country without SQL knowledge
-- Reduced dependency on data team for routine analysis
-- Faster iteration on experiment insights
-
-### Long-Term Impact
+**Operational Efficiency:**
+- Maintenance: 21 queries → 6 queries (71% reduction)
+- Self-service: Users can filter without SQL edits
+- Real-time monitoring: Stakeholders access experiment data instantly
 
 **Scalable Foundation:**
-- Purpose-built analytical table can support future dashboards
-- Flag-based architecture pattern reusable for other projects
-- Migration process documented for similar optimization efforts
-
-**Maintenance Efficiency:**
-- Before: Updating logic required changing 21 queries
-- After: Single query update propagates to all metrics
-- Reduced risk of inconsistencies across dashboard
-- Easier onboarding for new team members
-
-**Knowledge Sharing:**
-- Established best practices for query optimization
-- Created reusable validation methodology
-- Documented schema mapping approach for future migrations
-
-### Stakeholder Benefits
-
-**Engagement & Career Hub Analytics Team:**
-- Can monitor experiments in real-time during testing periods
-- Make data-driven decisions without waiting for reports
-- Self-service filtering reduces turnaround time
-
-**Business Stakeholders:**
-- Reliable access to experiment metrics
-- Confidence in data accuracy (100% validated)
-- Better visibility into user engagement across markets
-
-### Quantified Business Value
-
-**Time Savings:**
-- Data team: ~5-10 hours/month saved on maintenance and ad-hoc requests
-- Product team: Eliminated wait time for SQL changes (self-service)
-- Stakeholders: 100+ daily users benefit from fast dashboard loads
-
-**Risk Reduction:**
-- Eliminated timeout failures during critical experiment periods
-- Reduced data inconsistency risk (single source of truth)
-- Validated accuracy gives confidence in decision-making
-
-**Experiment Velocity:**
-- Faster access to results enables quicker iteration
-- Real-time monitoring allows mid-experiment adjustments
-- Better experiment insights drive product improvements
+- Purpose-built analytical table supports future dashboards
+- Flag-based pattern reusable for other projects
+- Migration methodology documented for team
 
 ---
 
-## Lessons Learned
+## Key Takeaways
 
-### What Worked Well
+**Fix the Foundation First:** Performance issues often stem from data architecture, not just query logic. Migration to purpose-built table enabled consolidation to be effective.
 
-**Two-Phase Technical Approach:**
-- Separating migration (Phase 1) from consolidation (Phase 2) allowed incremental validation
-- Each phase had clear success criteria and deliverables
-- Reduced risk: if consolidation failed, migration alone still provided value
+**Validate Obsessively:** 100% accuracy validation gave stakeholders confidence to adopt new dashboard. Without thorough validation, performance gains wouldn't matter if data was wrong.
 
-**Systematic Validation Methodology:**
-- Validation spreadsheet approach caught issues early
-- Line-by-line comparison gave confidence in accuracy
-- Automated difference calculations made validation scalable
+**Trade-offs Are Acceptable:** 3 queries couldn't migrate, 2 queries couldn't consolidate - keeping them separate was acceptable. Perfect consolidation wasn't required for 70% improvement.
 
-**Stakeholder Involvement:**
-- Early communication about project scope and timeline
-- Regular check-ins prevented surprises
-- Dashboard demonstration sessions built confidence
-
-**Flag-Based Architecture:**
-- More flexible than traditional separate queries
-- Easier to add new metrics (just add flags)
-- Dashboard calculations transparent and maintainable
-
-### What I'd Do Differently
-
-**Earlier Performance Profiling:**
-- Should have measured baseline performance metrics more systematically
-- Would have helped quantify improvement more precisely
-- Lesson: Start with clear "before" metrics to prove "after" impact
-
-**Automated Validation Scripts:**
-- Manual Excel validation worked but was time-intensive
-- Could have written Python scripts to automate comparison
-- Lesson: Invest in automation for repetitive validation tasks
-
-**Incremental Consolidation:**
-- Consolidated 16 queries at once (big bang approach)
-- Could have consolidated in smaller batches (5 queries → 10 queries → 16 queries)
-- Lesson: Break large changes into smaller, testable increments
-
-**Parameter Planning Earlier:**
-- Parameterization added in Phase 3 as enhancement
-- Could have designed with parameters from Phase 2
-- Lesson: Think about end-user experience earlier in design
-
-### Key Takeaways
-
-**1. Fix the Foundation First:**
-Performance issues often stem from data architecture, not just query logic. Phase 1 (migration to purpose-built table) enabled Phase 2 (consolidation) to be effective.
-
-**2. Validate Obsessively:**
-100% accuracy validation gave stakeholders confidence to adopt new dashboard. Without thorough validation, the performance gains wouldn't matter if data was wrong.
-
-**3. Think Beyond the Immediate Problem:**
-Project started as migration, but identifying consolidation opportunity (Phase 2) and adding parameterization (Phase 3) multiplied the value delivered.
-
-**4. Documentation Enables Scale:**
-Comprehensive documentation means this approach can be replicated for other dashboards facing similar issues.
-
-**5. Trade-offs Are Acceptable:**
-3 queries couldn't migrate due to missing data - keeping them on old table was acceptable compromise. Perfect migration wasn't required for significant improvement.
-
-### Skills I Developed
-
-**Technical Growth:**
-- Deepened SQL optimization expertise (CTEs, performance tuning)
-- Learned flag-based architecture pattern for analytics
-- Improved data validation methodology
-- Gained experience with Databricks dashboard features
-
-**Process Improvement:**
-- Learned to structure complex projects into phases
-- Developed systematic validation approach
-- Improved technical documentation skills
-
-**Business Acumen:**
-- Better understanding of balancing technical perfection vs. business value
-- Learned to communicate technical work to non-technical stakeholders
-- Developed sense for when "good enough" is actually good enough
+**Documentation Enables Scale:** Comprehensive documentation means this approach can be replicated for other dashboards facing similar issues.
 
 ---
 
 ## Tools & Technologies
 
-- **Databricks**: Cloud data platform, SQL query execution, dashboard development
-- **SQL**: Query development, optimization, CTEs, window functions
-- **Excel**: Data validation, comparison analysis, automated calculations
+- **Databricks:** Notebook, dashboard development
+- **SQL:** Query development, optimization, CTEs, window functions
+- **Excel:** Data validation, comparison analysis, automated calculations
+- **Confluence:** Technical documentation, knowledge sharing
 
 ---
 
