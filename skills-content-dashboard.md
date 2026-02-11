@@ -8,7 +8,7 @@ subtitle: Building analytics dashboard from data modeling to Tableau deployment
 
 **Context:** The content operations team needed a daily dashboard to monitor Skills content performance, identify traffic drivers, and evaluate engagement depth. Existing references included a daily Community Ops dashboard and a monthly Skills Health dashboard.
 
-**My role:** Dashboard developer (SQL modeling + Tableau build). Requirements were provided and final work was reviewed by a Senior Data Analyst.
+**My role:** Product Analytics Intern (SQL modeling + Tableau build). Requirements were provided and final work was reviewed by a Senior Data Analyst.
 
 **Duration:** ~1 month
 
