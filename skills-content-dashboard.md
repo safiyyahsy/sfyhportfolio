@@ -35,7 +35,7 @@ subtitle: Building analytics dashboard from data modeling to Tableau deployment
 **Collaboration:**
 - Requirements gathered by Senior Data Analyst
 - Data models reviewed by Senior Data Analyst
-- Final dashboard validated with Content Operations stakeholders
+- Final dashboard validated with Senior Data Analyst
 
 ---
 
@@ -167,7 +167,7 @@ To ensure alignment with existing patterns and avoid reinventing the wheel, I st
 
 **Decision 1: Two-Model Architecture**
 
-Following Skills Health dashboard pattern, separated into two models:
+Following Skills Health dashboard use of metrics, separated into two models:
 - **Model 1:** UV, activation, drivers (who engaged, from where, which channel)
 - **Model 2:** Depth metrics (how long they watched, completion rates)
 
@@ -232,7 +232,7 @@ Reused Skills Health Model 1 approach:
 
 ### Phase 2: Building Model 1 - UV & Activation Metrics
 
-**Duration:** ~2 weeks  
+**Duration:** ~2 weeks
 **Purpose:** Track who activated (UV), from where (drivers), and overall conversion rates
 
 ---
@@ -317,44 +317,45 @@ WITH all_base AS (
         AND metadata.date >= ADD_MONTHS(CURRENT_DATE(), -6)  -- Rolling 6-month window
 )
 ```
-Key Adaptations Made:
+**Key Adaptations Made:**
 
-1. Event Classification Enhancement:
+**1. Event Classification Enhancement:**
+- Adapted Community's thread event logic
+- Added Skills video play event with action_type filter
+- Standardized event names for consistency (e.g., web vs app event name differences)
 
-Adapted Community's thread event logic
-Added Skills video play event with action_type filter
-Standardized event names for consistency (e.g., web vs app event name differences)
-
-2. Module ID Standardization:
+**2. Module ID Standardization:**
 ```sql
 LEFT(module_id_tx, 9) AS module_id
 ```
-Original module IDs had varying formats
-Standardized to first 9 characters for consistent grouping
-3. Geographic Extraction:
+- Original module IDs had varying formats
+- Standardized to first 9 characters for consistent grouping
+
+**3. Geographic Extraction:**
 ```sql
 RIGHT(brand_country, 2) AS country
 ```
-Brand_country format: 'jobhk', 'jobau'
-Extracted 2-letter country code for cleaner aggregation
+- Brand_country format: 'jobhk', 'jobau'
+- Extracted 2-letter country code for cleaner aggregation
 
-4. Date Range Optimization:
+**4. Date Range Optimization:**
 ```sql
 WHERE date >= ADD_MONTHS(CURRENT_DATE(), -6)
 ```
-Limited to 6-month rolling window (vs. full history)
-Balances data availability with query performance
-Dashboard parameters allow further filtering
+- Limited to 6-month rolling window (vs. full history)
+- Balances data availability with query performance
+- Dashboard parameters allow further filtering
 
-5. Event Exclusions:
+**5. Event Exclusions:**
+- Excluded Skills-specific events handled in Model 2 (video pause, certificate events, bookmarks)
+- Prevents duplication between models
+- Keeps Model 1 focused on activation (not depth)
 
-Excluded Skills-specific events handled in Model 2 (video pause, certificate events, bookmarks)
-Prevents duplication between models
-Keeps Model 1 focused on activation (not depth)
-Step 2: Overall Aggregation - overall_daily CTE
-Granularity: Date + Platform + Country (highest-level summary)
+#### Step 2: Overall Aggregation - overall_daily CTE
 
-Purpose: Power top-level KPI charts and overall trend analysis
+**Granularity:** Date + Platform + Country (highest-level summary)
+
+**Purpose:** Power top-level charts and overall trend analysis
 ```sql
 overall_daily AS (
     SELECT 
@@ -584,7 +585,7 @@ UNION ALL SELECT * FROM channel_campaign_daily
 
 ### Phase 3: Building Model 2 - Depth Metrics (Watch Time & Completion Rate)
 
-**Duration:** ~1-2 weeks  
+**Duration:** ~1 week
 **Purpose:** Measure how deeply users engage with content (watch duration, completion rates)
 
 **Adapted from:** Skills Health Dashboard Model 2 (monthly) → Enhanced to daily granularity
@@ -903,13 +904,14 @@ Production version uses dashboard parameters for flexibility
 
 **Driver Analysis Section:**
 
-**5. Marketing Channel Driver (Trend + Table)**
+**5. Marketing Channel Activation (Trend + Table)**
 
 **Trend Chart (Line):**
 - **Metric:** Skills CC% by channel
 - **Data source:** Model 1, `data_type = 'channel_campaign_daily'`
 - **Calculated field:** `Skills UV / Total UV` by channel
 - **Filters:** Top N channels by volume
+- **Purpose:** To identify the trend
 
 **Table (Heatmap):**
 - **Rows:** Marketing Channel
@@ -924,6 +926,7 @@ Production version uses dashboard parameters for flexibility
 - **Data source:** Model 1, `data_type = 'origin_daily'`
 - **Calculated field:** `Skills UV / Total UV` by origin
 - **Filters:** Top N origins selector (parameter-driven)
+- **Purpose:** To identify the trend
 
 **Table (Heatmap):**
 - **Rows:** Action Origin (product feature)
@@ -1010,24 +1013,11 @@ Created reference panel explaining all metrics:
 - Platform filter (multi-select)
 - Country filter (multi-select)
 
-**Local Parameters (Video Viewed tab):**
+**Local Parameters:**
 - Top N modules to display (reduces visual clutter)
 - Module provider filter (isolate specific content partners)
 
 **Benefit:** Stakeholders can explore data without SQL knowledge or analyst intervention
-
----
-
-**3. Color Coding & Visual Hierarchy**
-
-**Design Decisions:**
-- **Trend charts:** Blue (primary), Orange (secondary), Green (tertiary)
-- **Heatmaps:** Green (high performance) → Yellow (medium) → Red (low performance)
-- **Consistent formatting:** Date format, number format (1.2K vs 1,234) consistent across charts
-
-**Purpose:** Easy pattern recognition, professional appearance
-
----
 
 ---
 
@@ -1061,12 +1051,6 @@ Created reference panel explaining all metrics:
 - Received feedback on visualization choices
 - Iterated on chart types and filters based on suggestions
 
-**Stakeholder Validation (Content Operations Team):**
-- Demonstrated dashboard functionality
-- Explained how to use filters and interpret metrics
-- Gathered feedback on usability and missing features
-- Confirmed metrics aligned with business needs
-
 **Iterations Made:**
 - Added Top N filter for action origins (reduced visual clutter)
 - Enhanced glossary with more detailed metric definitions
@@ -1081,179 +1065,42 @@ Created reference panel explaining all metrics:
 1. Published dashboard to Tableau Server
 2. Set up refresh schedule (daily at 6 AM)
 3. Configured user permissions (Content Ops team access)
-4. Created usage guide in Confluence
-5. Conducted dashboard walkthrough session with team
-
-**Documentation Delivered:**
-- **Confluence page:** Data model documentation, metric definitions, known limitations
-- **Glossary panel:** Embedded in dashboard for self-service
-- **SQL code:** Documented in Databricks with comments
-- **Usage guide:** How to use filters, interpret charts, common questions
+4. Conducted dashboard walkthrough session with team
 
 ---
 
-## Impact & Outcomes
+## Impact & Outcomes (Summary)
 
-### Immediate Impact
+- Enabled **daily monitoring** of Skills content performance (previously monthly reporting)
+- Provided **self-service drill-downs** by module, marketing channel, and product discovery path (action origin)
+- Added **depth metrics** (watch minutes + completion rate) to support content quality decisions
 
-**Content Operations Team:**
-- Gained daily visibility into Skills content performance (previously monthly)
-- Can now identify underperforming modules quickly
-- Track marketing campaign effectiveness in real-time
-- Make data-driven decisions on content promotion
+## What I Built
 
-**Self-Service Analytics:**
-- Team can filter and explore data without analyst support
-- Reduced ad-hoc query requests to data team
-- Faster turnaround on content performance questions
+**Data models (SQL, Databricks):**
+- **Model 1 (Activation/Drivers):** multi-CTE + `UNION ALL` architecture with `data_type` to support multiple aggregation levels in Tableau
+- **Model 2 (Depth):** daily watch minutes + completion rate calculations adapted from monthly Skills Health model
 
----
-
-### Business Value
-
-**Operational Efficiency:**
-- Real-time monitoring enables faster response to content issues
-- Marketing team can optimize campaigns based on daily data
-- Content prioritization decisions based on actual engagement metrics
-
-**Strategic Insights Enabled:**
-- Identify which product features drive content discovery
-- Understand geographic differences in content preferences
-- Measure content depth (completion rates) to improve quality
-- Track partnership content performance (module provider breakdown)
-
----
-
-### Metrics & KPIs Tracked
-
-**Activation Metrics:**
-- Skills UV: Daily unique users engaging with video content
-- Overall CC%: Total Content Hub activation rate
-- Skills CC%: Video-specific activation rate
-- Community CC%: Thread engagement rate
-
-**Volume Metrics:**
-- Play Events: Total video plays across all modules
-- Watch Minutes: Total viewing time
-- Visits: Session-level engagement
-
-**Driver Metrics:**
-- Marketing Channel attribution
-- Product Discovery paths (Action Origin)
-- UTM Campaign performance
-
-**Depth Metrics:**
-- Completion Rate: % of video content watched
-- Watch Minutes per Module: Engagement depth by content
-- Watch Minutes per User: Average depth per user
-
----
+**Tableau dashboard:**
+- Built **all visualizations** and filter logic (global vs local filters)
+- Added glossary/definitions panel for stakeholder self-service
+- Senior Data Analyst reviewed the final dashboard and logic
 
 ## Skills Demonstrated
 
-### Technical Skills
+- **SQL & data modelling:** CTE design, conditional logic, multi-grain modelling via `UNION ALL`, daily vs monthly conversion
+- **BI / Tableau:** dashboard build, calculated fields, parameters/filters, visual design for stakeholders
+- **Analytics execution:** translating requirements into metrics, validation checks, iteration based on review feedback
+- **Documentation:** metric definitions + usage notes (glossary)
 
-**SQL & Data Modeling:**
-- Adapted existing patterns to new requirements
-- Multi-level CTE architecture design
-- UNION ALL implementation with column standardization
-- Event classification and conditional logic
-- Data quality filtering and validation
-- Daily vs monthly granularity conversion
-
-**Tableau Development:**
-- Dashboard layout design and navigation
-- Calculated field creation (CC%, rates, percentages)
-- Multi-level filtering (global vs local)
-- Visualization selection (trends, tables, heatmaps)
-- Parameter implementation (Top N, date ranges)
-- Color coding and formatting for usability
-
-**Data Platform:**
-- Databricks SQL query development
-- Query performance optimization (6-month rolling window)
-- Understanding of data refresh schedules
-- Cross-table joining and data enrichment
-
----
-
-### Analytical Skills
-
-**Requirements Translation:**
-- Converted stakeholder needs into technical specifications
-- Identified appropriate metrics and dimensions
-- Determined optimal aggregation levels
-
-**Pattern Recognition:**
-- Identified reusable patterns from existing dashboards
-- Adapted patterns to new context (Community → Skills)
-- Enhanced patterns with improvements (monthly → daily)
-
-**Data Modeling:**
-- Designed two-model architecture for different metric types
-- Structured data for Tableau optimization
-- Implemented `data_type` pattern for aggregation control
-
-**Validation Methodology:**
-- Cross-model metric verification
-- SQL output testing before dashboard connection
-- Stakeholder feedback incorporation
-
----
-
-### Soft Skills
-
-**Learning Agility:**
-- Studied existing dashboard patterns independently
-- Understood complex SQL structures built by others
-- Applied learnings to new context
-
-**Attention to Detail:**
-- Discovered and fixed UNION ALL column order bug
-- Ensured consistent column structure across CTEs
-- Validated data accuracy before stakeholder demo
-
-**Communication:**
-- Created comprehensive glossary for self-service
-- Documented methodology in Confluence
-- Conducted dashboard walkthrough for stakeholders
-
-**Collaboration:**
-- Worked with Senior Data Analyst on requirements
-- Incorporated feedback from stakeholder reviews
-- Delivered dashboard meeting team expectations
-
----
-
-## Tools & Technologies
-
-- **SQL:** Advanced queries, CTEs, window functions, UNION ALL
-- **Databricks:** Cloud data platform, query execution
-- **Tableau:** Dashboard development, calculated fields, parameters, filters
-- **Confluence:** Documentation, methodology notes
-- **Excel:** Testing, validation, ad-hoc analysis
+## Tools
+SQL • Databricks • Tableau • Excel
 
 ---
 
 ## Key Takeaways
-
-**What Worked Well:**
-- Adapting existing patterns saved time and ensured consistency
-- Daily granularity enhancement provided more value than monthly
-- Two-model separation kept calculations clean and maintainable
-- Glossary panel reduced questions and enabled self-service
-
-**What I Learned:**
-- UNION ALL requires strict column order discipline
-- Studying existing code patterns accelerates development
-- Daily vs monthly granularity significantly impacts query performance
-- Dashboard usability as important as technical correctness
-
-**Impact on My Growth:**
-- Gained confidence working with complex existing codebases
-- Learned Tableau best practices for enterprise dashboards
-- Improved ability to translate business needs into technical solutions
-- Strengthened documentation and knowledge-sharing skills
+- Reusing proven dashboard modelling patterns (with clear enhancements) improves delivery speed and maintainability.
+- Separating activation metrics vs depth metrics into two models keeps logic cleaner and reduces risk of mis-aggregation.
 
 ---
 
