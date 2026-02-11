@@ -20,7 +20,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL optimization, data migration, CTEs, performance tuning, dimensional modeling, Databricks dashboards, technical documentation
 
-**📄 [View detailed technical case study →](/sfyhportfolio/career-hub-optimization)**
+**📄 [View detailed technical case study →](https://github.com/safiyyahsy/sfyhportfolio/career-hub-optimization)**
 
 ---
 
@@ -38,7 +38,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** Requirements gathering, data modeling, Tableau, stakeholder management
 
-**📄 [View detailed case study →](/sfyhportfolio/skills-content-dashboard)**
+**📄 [View detailed case study →](https://github.com/safiyyahsy/sfyhportfolio/skills-content-dashboard)**
 
 ---
 
@@ -54,7 +54,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL (CTEs, conditional logic), metric definition, documentation
 
-**📄 [View detailed technical case study →](/sfyhportfolio/user-segmentation-analysis)**
+**📄 [View detailed technical case study →](https://github.com/safiyyahsy/sfyhportfolio/user-segmentation-analysis)**
 
 ---
 ### 4. Technical Documentation & Data Governance
@@ -102,7 +102,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 ## SQL Code Samples
 
-Want to see my SQL skills in action? Check out my [SQL examples page](/sfyhportfolio/sql-samples) with anonymized code demonstrating:
+Want to see my SQL skills in action? Check out my [SQL examples page](https://github.com/safiyyahsy/sfyhportfolio/sql-samples) with anonymized code demonstrating:
 - Query migration & schema mapping
 - Query consolidation (flag-based + UNION ALL)
 - User segmentation with CASE WHEN and multi-table joins
