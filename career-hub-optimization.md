@@ -940,6 +940,7 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 
 
 Databricks Dashboard (Frontend)
+
 • 4 Dynamic Parameters
 • 20+ Calculated Fields (Schema)
 • 15+ Visualizations
@@ -947,6 +948,7 @@ Databricks Dashboard (Frontend)
 ▼
 
 Consolidated Query (Backend)
+
 • 1 main query (replaces 16)
 • 2 converted queries
 • 3 original queries
