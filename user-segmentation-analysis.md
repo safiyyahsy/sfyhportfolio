@@ -360,7 +360,6 @@ COUNT(DISTINCT CASE WHEN user_type = 'Student' THEN candidate_id END)
 **3. Market-Specific Patterns**
 - **AU/NZ (Developed markets):** Lower student/graduate percentages, majority "Other" (employed users)
 - **SEA markets (Emerging):** Higher student percentages, active upskilling behavior
-- **Mature professionals dominant:** 75-97% of viewers categorized as "Other" across all markets
 
 **4. Temporal Trends (Monthly Analysis)**
 Based on monthly breakdown:
@@ -373,7 +372,7 @@ Based on monthly breakdown:
 ## Skills Demonstrated
 
 **SQL & Data Analysis:**
-- Advanced SQL (multi-level CTEs, complex CASE WHEN logic, LEFT JOINs)
+- SQL (multi-level CTEs, complex CASE WHEN logic, LEFT JOINs)
 - User segmentation methodology
 - Data quality assessment
 - Metric definition and validation
