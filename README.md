@@ -2,7 +2,7 @@
 
 Personal portfolio website showcasing data analytics case studies, SQL samples, and machine learning work.
 
-**Live Site:** [https://safiyyahsy.github.io/sfyhportfolio/](https://safiyyahsy.github.io/sfyhportfolio/aboutme.md)
+**Live Site:** [https://safiyyahsy.github.io/sfyhportfolio/](https://safiyyahsy.github.io/sfyhportfolio/aboutme/)
 
 ---
 
