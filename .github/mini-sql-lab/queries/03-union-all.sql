@@ -1,6 +1,6 @@
 -- 03_multigrain_union_all.sql
--- goal: demonstrate multi-grain modeling using union all + a grain label
--- this mimics common dashboard modeling patterns (generic, mock schema)
+-- goal: demonstrate combining multiple aggregation levels with union all + a grain label
+-- dataset and logic are fully mock and for learning/demo purposes only
 
 with base as (
   select
