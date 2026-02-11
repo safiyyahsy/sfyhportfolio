@@ -1,5 +1,5 @@
 -- Mini SQL Lab schema (mock data)
--- Domain: content platform analytics (generic, not employer-specific)
+-- Domain: content platform analytics
 
 create table users (
   user_id        integer primary key,
