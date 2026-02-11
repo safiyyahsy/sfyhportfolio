@@ -102,16 +102,20 @@ subtitle: Data Analytics & Machine Learning Work
 
 ## SQL Code Samples
 
-Want to see my SQL skills in action? Check out my [SQL examples page](/sql-samples.md) with anonymized code demonstrating:
-- Query migration & schema mapping
-- Query consolidation (flag-based + UNION ALL)
-- User segmentation with CASE WHEN and multi-table joins
+Want to see my SQL skills in action?  
+- **SQL snippets (public):** [SQL samples](sql-samples.md)  
+- **Mini SQL Lab (mock, runnable):** https://github.com/safiyyahsy/sfyhportfolio/tree/main/mini-sql-lab
+
+Examples include:
+- segmentation with `case when`
+- cohorting with ctes and date functions
+- data quality checks (`union all`)
+- joins + conditional aggregation
+- multi-grain output via `union all`
 
 ---
 
-## Contact
-
-Interested in discussing these projects or potential opportunities?
+## Contact Me
 
 📧 [Email](mailto:safiyyahsy28@gmail.com)  
 💼 [LinkedIn](https://www.linkedin.com/in/nsin28/)  
