@@ -1064,8 +1064,7 @@ Successfully optimized Career Hub Experiment dashboard through systematic three-
 
 - **Databricks:** Notebook, dashboard development
 - **SQL:** Query development, optimization, CTEs, window functions
-- **Excel:** Data validation, comparison analysis, automated calculations
-- **Confluence:** Technical documentation, knowledge sharing
+- **Excel:** Data validation, comparison analysis, automated calculations, documentation
 
 ---
 
