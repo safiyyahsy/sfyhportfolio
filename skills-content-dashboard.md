@@ -12,7 +12,6 @@ subtitle: Building analytics dashboard from data modeling to Tableau deployment
 - [Data Modeling Architecture](#data-modeling-architecture)
 - [SQL Implementation](#sql-implementation)
 - [Tableau Dashboard Development](#tableau-dashboard-development)
-- [Technical Challenges & Solutions](#technical-challenges--solutions)
 - [Skills Demonstrated](#skills-demonstrated)
 
 ---
