@@ -1,0 +1,7 @@
+content_id,content_type,provider,title,duration_sec
+101,video,partner_a,sql_basics,420
+102,video,partner_a,interview_sql_ctes,540
+103,video,partner_b,product_metrics_101,480
+104,article,partner_b,career_tips,
+105,thread,partner_c,community_discussion,
+106,video,partner_c,python_for_analysts,600
