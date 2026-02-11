@@ -40,7 +40,7 @@ subtitle: A two-phase approach to data migration and query consolidation
 **Duration:** ~3 months  
 **Role:** Product Analytics Intern  
 **Company:** SEEK (Jobstreet)  
-**Tools:** Databricks, SQL, Tableau, Confluence
+**Tools:** Databricks, SQL, Tableau, Excel
 
 ---
 
