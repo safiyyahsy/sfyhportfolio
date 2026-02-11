@@ -939,22 +939,23 @@ Tested dashboard with different parameter combinations to ensure flexibility:
 **Final Dashboard Architecture:**
 
 
-│ Databricks Dashboard (Frontend) │
-│ • 4 Dynamic Parameters │
-│ • 20+ Calculated Fields (Schema) │
-│ • 15+ Visualizations │
+Databricks Dashboard (Frontend)
+• 4 Dynamic Parameters
+• 20+ Calculated Fields (Schema)
+• 15+ Visualizations
 │
 ▼
 
-│ Consolidated Query (Backend) │
-│ • 1 main query (replaces 16) │
-│ • 2 converted queries │
-| • 3 original queries |
-│ • Total: 6 queries (was 21 originally) │
+Consolidated Query (Backend)
+• 1 main query (replaces 16)
+• 2 converted queries
+• 3 original queries
+• Total: 6 queries (was 21 originally)
 │
 ▼
-│ Purpose-Built Analytical Table │
-│ analytics_events │
+
+Purpose-Built Analytical Table:
+analytics_events
 
 **Documentation Delivered:**
 - Calculated field definitions and formulas
