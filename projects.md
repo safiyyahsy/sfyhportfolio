@@ -20,7 +20,7 @@ subtitle: Data Analytics & Machine Learning Work
 
 **Skills:** SQL optimization, data migration, CTEs, performance tuning, dimensional modeling, Databricks dashboards, technical documentation
 
-**📄 [View detailed technical case study →]((/sfyhportfolio/career-hub-optimization))**
+**📄 [View detailed technical case study →](/sfyhportfolio/career-hub-optimization)**
 
 ---
 
