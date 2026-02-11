@@ -1,0 +1,24 @@
+event_id,event_ts,event_date,user_id,country,platform,channel,campaign,action_origin,event_name,content_id,watch_sec
+1,2025-06-01 10:00:00,2025-06-01,1,c1,android,organic,,home,content_view,101,
+2,2025-06-01 10:01:00,2025-06-01,1,c1,android,organic,,home,play,101,60
+3,2025-06-01 10:05:00,2025-06-01,1,c1,android,organic,,home,watch,101,240
+4,2025-06-01 10:10:00,2025-06-01,1,c1,android,organic,,home,complete,101,420
+
+5,2025-06-02 09:00:00,2025-06-02,2,c1,ios,paid,summer_push,search,content_view,102,
+6,2025-06-02 09:01:00,2025-06-02,2,c1,ios,paid,summer_push,search,play,102,30
+7,2025-06-02 09:04:00,2025-06-02,2,c1,ios,paid,summer_push,search,watch,102,120
+
+8,2025-06-03 20:00:00,2025-06-03,3,c2,ios,email,june_newsletter,notification,content_view,103,
+9,2025-06-03 20:02:00,2025-06-03,3,c2,ios,email,june_newsletter,notification,play,103,45
+10,2025-06-03 20:06:00,2025-06-03,3,c2,ios,email,june_newsletter,notification,watch,103,200
+
+11,2025-06-04 12:00:00,2025-06-04,4,c2,android,organic,,home,content_view,104,
+12,2025-06-04 12:05:00,2025-06-04,4,c2,android,organic,,home,content_view,105,
+
+13,2025-06-05 18:00:00,2025-06-05,6,c3,ios,paid,summer_push,home,content_view,101,
+14,2025-06-05 18:01:00,2025-06-05,6,c3,ios,paid,summer_push,home,play,101,60
+15,2025-06-05 18:05:00,2025-06-05,6,c3,ios,paid,summer_push,home,watch,101,180
+
+16,2025-06-06 08:00:00,2025-06-06,7,c4,android,organic,,search,content_view,106,
+17,2025-06-06 08:02:00,2025-06-06,7,c4,android,organic,,search,play,106,60
+18,2025-06-06 08:12:00,2025-06-06,7,c4,android,organic,,search,watch,106,300
