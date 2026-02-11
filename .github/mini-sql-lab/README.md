@@ -20,4 +20,18 @@ This folder contains a small, public-safe SQL mini project to demonstrate my SQL
 3. Import CSV files from `data/` into the tables
 4. Run queries in `queries/` in order
 
-> Note: This is intentionally a toy dataset designed for demonstration.
+---
+
+## Data dictionary (mock)
+
+These fields are intentionally generic and **not tied to any employer implementation**.
+
+- `country`: anonymized market code (c1..c8)
+- `platform`: client type (`ios`, `android`, `web`)
+- `channel`: high-level acquisition channel (`organic`, `paid`, `email`)
+- `campaign`: campaign label (e.g., `summer_push`, `june_newsletter`)
+- `action_origin`: entry surface where content was discovered (`home`, `search`, `notification`)
+- `event_name`: generic event type (`content_view`, `play`, `watch`, `complete`)
+
+## Notes on confidentiality
+This mini lab is a personal demo using mock data and generic SQL patterns.
