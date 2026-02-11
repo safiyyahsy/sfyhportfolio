@@ -152,7 +152,7 @@ order by event_date, country, grain;
 ---
 
 ### full runnable sql examples
-✅ **[mini sql lab](mini-sql-lab/readme.md)** (schema + mock data + queries)
+✅ **[mini sql lab](mini-sql-lab/README.md)** (schema + mock data + queries)
 
 **Note:** Additional SQL examples from other projects will be added as documentation progresses.
 
