@@ -40,21 +40,6 @@ Data Analyst • Business Intelligence Analyst • Junior Business Analyst
 
 ---
 
-## Repository Structure (portfolio site)
-```text
-sfyhportfolio/
-├── _config.yml
-├── index.html
-├── aboutme.md
-├── projects.md
-├── sql-samples.md
-├── career-hub-optimization.md
-├── skills-content-dashboard.md
-├── user-segmentation-analysis.md
-└── assets/
-```
----
-
 ## Contact
 
 - **Email:** safiyyahsy28@gmail.com
