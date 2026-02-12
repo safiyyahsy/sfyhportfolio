@@ -98,9 +98,6 @@ subtitle: Data Analytics & Machine Learning Work
 - Generated 12-year forecast projecting **~42.3M population by 2036**
 - Validated model with comprehensive residual diagnostics
 
-![Population Trend & Forecast](/assets/img/projects/malaysia-population/figure5-forecast-plots.png)  
-_12-year population forecast using Holt's Method and ARIMA with 95% confidence intervals_
-
 **Skills:** R (forecast, tseries packages), time series analysis, ARIMA modeling, Holt's Method, ACF/PACF analysis, model selection (AIC), residual diagnostics, statistical validation  
 **My Role:** Time Series Modeling & Implementation (Group Project)  
 **📄 [View detailed case study →](/malaysia-population-forecast.md)**
@@ -111,19 +108,15 @@ _12-year population forecast using Holt's Method and ARIMA with 95% confidence i
 **Description:** Built a multivariate regression model to forecast U.S. Housing Price Index (HPI) using macroeconomic indicators and validated the model through multicollinearity checks and residual diagnostics.
 
 **Technical Highlights:**
-- Modeled HPI using key macroeconomic indicators (SPI, CPI, POP, UNEMP, GDP, MR, RDI) and lag terms
-- Performed exploratory time-series analysis and correlation assessment to understand relationships and potential multicollinearity
-- Ran VIF screening and iterative model reduction to improve stability and interpretability
+- Modeled HPI using macroeconomic indicators (SPI, CPI, POP, UNEMP, GDP, MR, RDI) with lag terms
+- Assessed relationships via exploratory analysis and correlation matrix
+- Reduced multicollinearity using **VIF screening** and iterative model refinement
 - Achieved **Adjusted R² = 0.9988** with statistically significant predictors
 - Validated assumptions using residual tests (normality, independence, homoscedasticity, autocorrelation)
 - Produced forecasts with **95% confidence intervals**
 
-![Actual vs Predicted (Log HPI)](/assets/img/projects/us-housing/fig5-actual-vs-predicted.png)  
-_Actual vs predicted U.S. Housing Price Index (log scale) showing strong model fit._
-
 **Skills:** R, multivariate regression, log transformation, lag features, VIF analysis, correlation analysis, residual diagnostics, forecasting with confidence intervals  
-**My Role:** Statistical Modeling & Implementation (Group Project)
-
+**My Role:** Statistical Modeling & Implementation (Group Project)  
 **📄 [View detailed case study →](/us-housing-price-forecast.md)**
 
 ---
