@@ -57,9 +57,9 @@ Additionally, an age-based request could not be completed because age data is no
 
 | Country | Total Content Viewers | Students | Unemployed Graduates | Other | % Students | % Unemployed Grads | % Other |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| AU | 82.5k | 4.8k | 3.5k | 74.2k | 5.82% | 4.24% | 89.94% |
-| SG | 90k | 13k | 1.5k | 75.5k | 14.44% | 1.67% | 83.89% |
-| MY | 50k | 7.1k | 4.0k | 38.9k | 14.20% | 8.00% | 77.80% |
+| A | 82.5k | 4.8k | 3.5k | 74.2k | 5.82% | 4.24% | 89.94% |
+| B | 90k | 13k | 1.5k | 75.5k | 14.44% | 1.67% | 83.89% |
+| C | 50k | 7.1k | 4.0k | 38.9k | 14.20% | 8.00% | 77.80% |
 | .. | .. | .. | .. | .. | .. | .. | .. |
 
 
