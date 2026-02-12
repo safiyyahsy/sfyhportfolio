@@ -17,16 +17,16 @@ The dependent variable is **Housing Price Index (HPI)**. Candidate predictors in
 - Mortgage Rate (MR)
 - Real Disposable Income (RDI)
 
-![Time Series Plots](/assets/img/projects/us-housing/fig2-1-timeseries.png)
+![Time Series Plots](/assets/img/projects/us-housing/fig2-1-timeseries.png)  
 *Time series plots of HPI and macroeconomic indicators (1975–2021).*
 
-![Variables Table](/assets/img/projects/us-housing/table2-1-variables.png)
+![Variables Table](/assets/img/projects/us-housing/table2-1-variables.png)  
 *Summary of variables and expected relationships with HPI.*
 
 ## Exploratory Analysis
 To understand relationships and potential feature redundancy, I analyzed correlation patterns across variables.
 
-![Correlation Matrix](/assets/img/projects/us-housing/fig2-2-correlation-matrix.png)
+![Correlation Matrix](/assets/img/projects/us-housing/fig2-2-correlation-matrix.png)  
 *Pearson correlation matrix indicating strong relationships and multicollinearity risk among some predictors.*
 
 ## Modeling Approach
@@ -39,22 +39,22 @@ Key steps:
 4. **Model comparison** across multiple candidate specifications.
 5. **Assumption validation** via residual tests (normality, independence, homoscedasticity, autocorrelation).
 
-![VIF + Model Iterations](/assets/img/projects/us-housing/table4-1-vif-models.png)
+![VIF + Model Iterations](/assets/img/projects/us-housing/table4-1-vif-models.png)  
 *VIF screening, coefficient signs, p-values, and adjusted R² across initial/reduced models.*
 
 ## Model Validation
 I validated key regression assumptions using residual diagnostic tests (e.g., AD test, Box test, Durbin-Watson, BP test).
 
-![Residual Assumption Tests](/assets/img/projects/us-housing/table4-2-residual-tests.png)
-*P-values for residual assumption checks across candidate models (Model 10 shown as final).*
+![Residual Assumption Tests](/assets/img/projects/us-housing/table4-2-residual-tests.png)  
+*P-values for residual assumption checks across candidate models (final model shown separately).*
 
 ## Forecast Results
 The final model produced forecasts with confidence intervals and showed strong fit between actual and predicted values on the log scale.
 
-![Forecast Table](/assets/img/projects/us-housing/table5-1-forecast.png)
+![Forecast Table](/assets/img/projects/us-housing/table5-1-forecast.png)  
 *5-step ahead forecast with 95% confidence intervals (log scale).*
 
-![Actual vs Predicted](/assets/img/projects/us-housing/fig5-1-actual-vs-predicted.png)
+![Actual vs Predicted](/assets/img/projects/us-housing/fig5-1-actual-vs-predicted.png)  
 *Actual vs predicted U.S. Housing Price Index (log scale).*
 
 ## Key Results
