@@ -161,8 +161,6 @@ subtitle: Data Analytics & Machine Learning Work
 
 ---
 
----
-
 ## SQL Code Samples
 
 Want to see my SQL skills in action?  
