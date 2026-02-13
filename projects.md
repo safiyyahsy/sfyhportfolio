@@ -148,15 +148,18 @@ subtitle: Data Analytics & Machine Learning Work
 
 ---
 
-### KRISTA Database System
-**Description:** Student registration system built on Oracle APEX with normalized relational database design.
+### KRISTA Student Registration System (Oracle APEX)
+**Description:** Designed and built a database-driven registration system for a kindergarten franchise to replace manual logbooks and paper records.
 
-**Features:**
-- Normalized database schema (3NF)
-- Data entry forms with validation
-- Entity Relationship Diagrams (ERD)
+**Technical Highlights:**
+- Designed normalized relational database (up to **3NF**) and ERD covering core entities (Student, Parent, Registration, Class, Teacher, Package, Fees, Receipts)
+- Implemented the application in **Oracle APEX** with data entry forms, validations, and reporting dashboards
+- Produced SQL scripts (DDL/DML), integrity constraints (PK/FK), and documentation (data dictionary) to ensure consistent and reliable records
 
-**Tools:** Oracle APEX, SQL, Database Design
+**Skills:** Oracle APEX, SQL, database design, ERD, normalization (1NF–3NF), data integrity constraints, reporting/dashboarding  
+**📄 [View detailed case study →](/krista-database-system.md)**
+
+---
 
 ---
 
