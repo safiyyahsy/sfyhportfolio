@@ -30,7 +30,7 @@ I turn data into actionable insights. My work involves:
 Data Analyst / Business Intelligence Analyst / Junior Business Analyst roles where I can leverage SQL and visualization skills to drive business decisions. Available from **April 2026**.
 
 ## 📄 Resume
-**[Download Resume (PDF)](NurSafiyyahInsyirahNordin_Resume.pdf)**
+**[Download Resume (PDF)](NurSafiyyahInsyirah_Resume.pdf)**
 _Last updated: February 2026 | Available from April 2026_
 
 ---
