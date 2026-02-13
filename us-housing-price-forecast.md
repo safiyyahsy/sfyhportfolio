@@ -45,7 +45,7 @@ Key steps:
 ## Model Validation
 I validated key regression assumptions using residual diagnostic tests (e.g., AD test, Box test, Durbin-Watson, BP test).
 
-![Residual Assumption Tests](/assets/img/projects/us-housing/table4-2-residual-tests.png)  
+![Residual Assumption Tests](/assets/img/projects/us-housing/table4-2-residuals-tests.png)  
 *P-values for residual assumption checks across candidate models (final model shown separately).*
 
 ## Forecast Results
