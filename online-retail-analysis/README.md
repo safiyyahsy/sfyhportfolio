@@ -11,6 +11,13 @@ Analyzing online retail transaction data to identify bestselling products and pe
 - Which products are our bestsellers?
 - When do customers buy most?
 
+## How to Reproduce This Analysis
+
+1. Clone this repository
+2. Download the raw dataset from [here](https://archive.ics.uci.edu/dataset/352/online+retail)
+3. Place the file in `data/raw/` folder
+4. Follow the analysis steps in [notebooks/] or [scripts/]
+
 ## Project Status
 🚧 In Progress
 
