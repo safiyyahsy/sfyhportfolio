@@ -5,7 +5,15 @@ Analyzing online retail transaction data to identify bestselling products and pe
 
 **Dataset Source:** [UCI Online Retail Dataset](https://lnkd.in/digH8CnD)
 
-**Tools Used:** Excel + SQL 
+## Tools Used
+- **Excel:** Initial data exploration and quality checks
+- **SQL:** Primary analysis tool for data cleaning and aggregation
+- **Python (optional):** Visualization and advanced analysis
+
+## Analysis Approach
+1. Excel for quick data profiling
+2. SQL for data transformation and analysis
+3. Documentation of insights and recommendations
 
 **Business Questions:**
 - Which products are our bestsellers?
